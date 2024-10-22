@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 1
+    },
+    "auditLog": "D:\\bdCalling\\template\\backend\\winston\\success\\.d91bd440fec7d4c2330ed477f1b6a69dddeb8c7a-audit.json",
+    "files": [
+        {
+            "date": 1725508278578,
+            "name": "D:\\bdCalling\\template\\backend\\winston\\success\\05-09-2024-09-success.log",
+            "hash": "b91f5a0e30fa58737e4f9c27236cbeecac7dc030c166532bcdd4cf91ebab4158"
+        }
+    ],
+    "hashType": "sha256"
+}
