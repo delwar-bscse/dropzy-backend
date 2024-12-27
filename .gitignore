@@ -1,6 +1,3 @@
 node_modules
-# /wiston
-
-# uploads
-
-# dentist-push-notification.json
+uploads
+/winston
