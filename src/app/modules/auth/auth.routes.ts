@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { USER_ROLES } from '../../../enums/user';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
@@ -13,7 +13,7 @@ router.post(
 );
 
 router.post(
-    '/forget-password',
+    '/forgot-password',
     validateRequest(AuthValidation.createForgetPasswordZodSchema),
     AuthController.forgetPassword
 );
@@ -22,9 +22,25 @@ router.post(
     '/refresh-token',
     AuthController.newAccessToken
 );
+router.post(
+    '/resend-otp',
+    AuthController.resendVerificationEmail
+);
 
 router.post(
     '/verify-email',
+    async (req: Request, res: Response, next: NextFunction) => {
+
+        try {
+            const { email, oneTimeCode } = req.body;
+
+            req.body = { email, oneTimeCode: Number(oneTimeCode)};
+            next();
+
+        } catch (error) {
+            return res.status(500).json({ message: "Failed to convert string to number" });
+        }
+    },
     validateRequest(AuthValidation.createVerifyEmailZodSchema),
     AuthController.verifyEmail
 );
@@ -40,6 +56,22 @@ router.post(
     auth(USER_ROLES.ADMIN, USER_ROLES.USER),
     validateRequest(AuthValidation.createChangePasswordZodSchema),
     AuthController.changePassword
+);
+
+router.post(
+    '/resend-otp',
+    AuthController.resendVerificationEmail
+);
+
+router.post(
+    '/social-login',
+    AuthController.socialLogin
+);
+
+router.delete(
+    '/delete-account',
+    auth(USER_ROLES.ADMIN),
+    AuthController.deleteUser
 );
 
 export const AuthRoutes = router;

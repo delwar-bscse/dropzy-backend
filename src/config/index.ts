@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
-dotenv.config({path: path.join(process.cwd(), 'env')});
+dotenv.config({path: path.join(process.cwd(), '.env')});
 
 export default{
     ip_address: process.env.IP,
@@ -15,8 +15,9 @@ export default{
         jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN
     },
     stripe:{
-        stripeSecretKey:process.env.WEBHOOK_SECRET,
-        webhookSecret:process.env.WEBHOOK_SECRET
+        stripeSecretKey:process.env.STRIPE_API_SECRET,
+        webhookSecret:process.env.WEBHOOK_SECRET,
+        paymentSuccess:process.env.WEBHOOK_SECRET
     },
     email:{
         from: process.env.EMAIL_FROM,
@@ -28,5 +29,10 @@ export default{
     admin: {
         email:process.env.ADMIN_EMAIL,
         password: process.env.ADMIN_PASSWORD
+    },
+    twilio: {
+        accountSid: process.env.TWILIO_ACCOUNT_SID,
+        authToken: process.env.TWILIO_AUTH_TOKEN,
+        twilioNumber: process.env.TWILIO_NUMBER
     }
 }

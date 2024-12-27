@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import config from '.';
 
-const stripe = new Stripe(config.stripeSecretKey as string, {
+const stripe = new Stripe(config.stripe.stripeSecretKey as string, {
     apiVersion: '2024-06-20',
 });
 

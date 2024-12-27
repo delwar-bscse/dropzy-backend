@@ -6,7 +6,7 @@ import { BookmarkService } from "./bookmark.service";
 const toggleBookmark = catchAsync(async(req: Request, res: Response)=>{
     const user = req.user.id;
     const artist = req.params.id;
-    const payload = { user, artist }
+    const payload:any = { user, artist }
     const result = await BookmarkService.toggleBookmark(payload);
     
     sendResponse(res, {

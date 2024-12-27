@@ -12,8 +12,7 @@ const createUser = catchAsync( async (req: Request, res: Response, next: NextFun
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'User created successfully',
-        data: result
+        message: 'Your account has been successfully created. Verify Your Email By OTP. Check your email',
     })
 });
 

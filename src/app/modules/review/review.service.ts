@@ -5,16 +5,11 @@ import { StatusCodes } from "http-status-codes";
 import { User } from "../user/user.model";
 import ApiError from "../../../errors/ApiErrors";
 
-
 const createReviewToDB = async(payload:IReview): Promise<IReview>=>{
 
-    // Validate ID before making a database call
-    if (!mongoose.Types.ObjectId.isValid(payload.provider)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid Offer ID');
-    }
 
-    // Fetch service and check if it exists in one query
-    const user:any = await User.findById(payload.provider);
+    // Fetch baber and check if it exists in one query
+    const user:any = await User.findById(payload.barber);
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, "No User Found");
     }
@@ -40,7 +35,7 @@ const createReviewToDB = async(payload:IReview): Promise<IReview>=>{
         }
 
         await User.findByIdAndUpdate(
-            {_id: payload.provider}, 
+            {_id: payload.barber}, 
             {rating: parseFloat(newRating.toFixed(2)) , ratingCount: ratingCount  }, 
             {new: true}
         )
@@ -53,15 +48,5 @@ const createReviewToDB = async(payload:IReview): Promise<IReview>=>{
     return payload;
 };
 
-const getReviewFromDB = async(id:any): Promise<IReview[]>=>{
 
-    // Validate ID before making a database call
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid Offer ID');
-    }
-    
-    const reviews = await Review.find({provider: id});
-    return reviews;
-};
-
-export const ReviewService ={ createReviewToDB, getReviewFromDB}
+export const ReviewService ={ createReviewToDB}
