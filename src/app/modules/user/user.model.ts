@@ -43,7 +43,7 @@ const userSchema = new Schema<IUser, UserModal>(
         },
         profile: {
             type: String,
-            default: 'https://i.ibb.co/z5YHLV9/profile.png',
+            default: 'https://res.cloudinary.com/dzo4husae/image/upload/v1733459922/zfyfbvwgfgshmahyvfyk.png',
         },
         verified: {
             type: Boolean,
