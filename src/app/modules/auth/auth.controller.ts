@@ -104,7 +104,7 @@ const socialLogin = catchAsync(async (req: Request, res: Response) => {
 
 // delete user
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await AuthService.deleteUserFromDB(req.user);
+    const result = await AuthService.deleteUserFromDB(req.user, req.body.password);
 
     sendResponse(res, {
         success: true,
