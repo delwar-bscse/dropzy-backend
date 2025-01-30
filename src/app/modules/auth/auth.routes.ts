@@ -4,6 +4,7 @@ import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { AuthController } from './auth.controller';
 import { AuthValidation } from './auth.validation';
+import passport from '../../../config/passport'
 const router = express.Router();
 
 router.post(
@@ -22,6 +23,7 @@ router.post(
     '/refresh-token',
     AuthController.newAccessToken
 );
+
 router.post(
     '/resend-otp',
     AuthController.resendVerificationEmail
@@ -72,6 +74,27 @@ router.delete(
     '/delete-account',
     auth(USER_ROLES.ADMIN),
     AuthController.deleteUser
+);
+
+
+// Google Auth Routes
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+router.get("/google/callback", 
+    passport.authenticate("google", { failureRedirect: "/" }),
+    (req, res) => {
+        res.redirect("/"); // Redirect after successful login
+    }
+);
+
+// Facebook Auth Routes
+router.get("/facebook", passport.authenticate("facebook", { scope: ["email"] }));
+
+router.get("/facebook/callback",
+    passport.authenticate("facebook", { failureRedirect: "/" }),
+    (req, res) => {
+        res.redirect("/dashboard"); // Redirect after successful login
+    }
 );
 
 export const AuthRoutes = router;
