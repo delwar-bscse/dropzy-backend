@@ -40,7 +40,7 @@ router.post(
             next();
 
         } catch (error) {
-            return res.status(500).json({ message: "Failed to convert string to number" });
+            res.status(500).json({ message: "Failed to convert string to number" });
         }
     },
     validateRequest(AuthValidation.createVerifyEmailZodSchema),
@@ -78,22 +78,28 @@ router.delete(
 
 
 // Google Auth Routes
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get("/google", (req: Request, res: Response, next: NextFunction) => {
+    const role = req.query.role as string;
+
+    if (!role || (role !== "INFLUENCER" && role !== "BRAND")) {
+        res.status(400).json({ error: "Invalid role" });
+    }
+
+    // Store the role in the session or state
+    req.body.role = role;
+
+    // Initiate authentication
+    passport.authenticate("google", { 
+        scope: ["profile", "email"], 
+        state: role
+    })(req, res, next);
+});
+
 
 router.get("/google/callback", 
     passport.authenticate("google", { failureRedirect: "/" }),
     (req, res) => {
         res.redirect("/"); // Redirect after successful login
-    }
-);
-
-// Facebook Auth Routes
-router.get("/facebook", passport.authenticate("facebook", { scope: ["email"] }));
-
-router.get("/facebook/callback",
-    passport.authenticate("facebook", { failureRedirect: "/" }),
-    (req, res) => {
-        res.redirect("/dashboard"); // Redirect after successful login
     }
 );
 

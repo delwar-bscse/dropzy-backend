@@ -1,57 +1,42 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as FacebookStrategy } from "passport-facebook";
 import config from ".";
 import { User } from "../app/modules/user/user.model";
+import { Request } from "express"; // Ensure you import the correct Request type
 
-// Google OAuth Strategy
-passport.use(new GoogleStrategy({
-    clientID: config.social.google_client_id as string,
-    clientSecret: config.social.google_client_secret as string,
-    callbackURL: "https://nadir.binarybards.online/api/v1/auth/google/callback"
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        
-        console.log(profile)
-        done(null, profile);
-    } catch (error) {
-        done(error, undefined);
-    }
-}));
-
-// Facebook OAuth Strategy
-passport.use(new FacebookStrategy({
-    clientID: config.social.facebook_client_id as string,
-    clientSecret: config.social.facebook_client_secret as string,
-    callbackURL: "/auth/facebook/callback",
-    profileFields: ['id', 'displayName', 'emails']
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        let user = await User.findOne({ appId: profile.id });
-
-        if (!user) {
-            user = await User.create({
-                appId: profile.id,
-                name: profile.displayName,
-                email: profile.emails?.[0]?.value
-            });
+passport.use(new GoogleStrategy(
+    {
+        clientID: config.social.google_client_id as string,
+        clientSecret: config.social.google_client_secret as string,
+        callbackURL: "https://nadir.binarybards.online/api/v1/auth/google/callback",
+        passReqToCallback: true
+    },
+    async ( req: Request, accessToken: string, refreshToken: string, profile: any, done: any ) => {
+        try {
+            const role = req.query.state as string;
+            console.log(role);
+            done(null, profile);
+        } catch (error) {
+            done(error, undefined);
         }
-
-        done(null, user);
-    } catch (error) {
-        done(error, null);
     }
-}));
+));
+
 
 // Serialize & Deserialize User
 passport.serializeUser((user: any, done) => {
-    done(null, user.id);
+    done(null, user._id);
 });
 
-passport.deserializeUser(async (id, done) => {
+
+passport.deserializeUser(async (id: string, done) => {
     try {
-        // const user = await User.findById(id);
-        done(null, id as any);
+        const user = await User.findById(id);
+        if (!user) {
+            done(new Error("User not found"), null);
+        } else {
+            done(null, user);
+        }
     } catch (error) {
         done(error, null);
     }
