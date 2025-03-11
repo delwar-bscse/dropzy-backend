@@ -79,19 +79,19 @@ router.delete(
 
 // Google Auth Routes
 router.get("/google", (req: Request, res: Response, next: NextFunction) => {
-    const role = req.query.role as string;
+    // const role = req.query.role as string;
 
-    if (!role || (role !== "INFLUENCER" && role !== "BRAND")) {
-        res.status(400).json({ error: "Invalid role" });
-    }
+    // if (!role || (role !== "INFLUENCER" && role !== "BRAND")) {
+    //     res.status(400).json({ error: "Invalid role" });
+    // }
 
     // Store the role in the session or state
-    req.body.role = role;
+    // req.body.role = role;
 
     // Initiate authentication
     passport.authenticate("google", { 
         scope: ["profile", "email"], 
-        state: role
+        // state: role
     })(req, res, next);
 });
 

@@ -3,8 +3,8 @@ import ApiError from "../../../errors/ApiErrors";
 import { IPackage } from "./package.interface";
 import { Package } from "./package.model";
 import mongoose from "mongoose";
-import { createSubscriptionProduct } from "../../../helpers/createSubscriptionProductHelper";
 import stripe from "../../../config/stripe";
+import { createStripeProductCatalog } from "../../../stripe/createStripeProductCatalog";
 
 const createPackageToDB = async(payload: IPackage): Promise<IPackage | null>=>{
 
@@ -15,7 +15,7 @@ const createPackageToDB = async(payload: IPackage): Promise<IPackage | null>=>{
         price: Number(payload.price),
     }
 
-    const product = await createSubscriptionProduct(productPayload);
+    const product = await createStripeProductCatalog(productPayload);
     
 
     if(!product){
