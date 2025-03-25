@@ -9,11 +9,9 @@ export const getSingleFilePath = async (files: any, folderName: IFolderName) => 
         const originalFilePath = path.join(process.cwd(), 'uploads', folderName, fileField[0].filename);
         const optimizedFilePath = await optimizeImage(originalFilePath);
 
-        // Convert absolute path to a proper relative path
         const relativePath = optimizedFilePath.replace(path.join(process.cwd(), 'uploads'), '');
-        return relativePath
+        return `${relativePath.replace(/\\/g, '/')}`;
     }
-
     return undefined;
 };
 

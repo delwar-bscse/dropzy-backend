@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get(
     '/profile',
-    auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+    auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.USER),
     UserController.getUserProfile
 );
 
@@ -31,12 +31,13 @@ router
         async (req: Request, res: Response, next: NextFunction) => {
             try {
                 
-                const profile = await getMultipleFilesPath(req.files, "image");
-                console.log(profile)
+                const profile = await getSingleFilePath(req.files, "image");
+                // console.log(profile)
                 req.body = { ...req.body, profile };
-                // next();
+                next();
 
             } catch (error) {
+                console.log(error)
                 res.status(500).json({ message: "Failed to Convert string to number" });
             }
         },
