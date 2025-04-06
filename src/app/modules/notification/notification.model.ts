@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { INotification, NotificationModel } from './notification.interface';
+import { USER_ROLES } from '../../../enums/user';
 
 const notificationSchema = new Schema<INotification, NotificationModel>(
     {
@@ -10,7 +11,7 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
         receiver: {
             type: Schema.Types.ObjectId,
             ref: 'User',
-            required: true
+            required: false
         },
         referenceId: {
             type: String,
@@ -26,7 +27,7 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
         },
         type: {
             type: String,
-            enum: ['ADMIN'],
+            enum: Object.values(USER_ROLES),
             required: false
         }
     },
@@ -35,7 +36,13 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
     }
 );
 
-export const Notification = model<INotification, NotificationModel>(
-    'Notification',
-    notificationSchema
-);
+// Index for fetching a user's notifications
+notificationSchema.index({ receiver: 1, createdAt: -1 });
+
+// Index for counting unread notifications for a user
+notificationSchema.index({ receiver: 1, read: 1 });
+
+// Index for filtering by type (e.g., ADMIN)
+notificationSchema.index({ type: 1 });
+
+export const Notification = model<INotification, NotificationModel>('Notification', notificationSchema);
