@@ -7,6 +7,7 @@ import generateOTP from "../../../util/generateOTP";
 import { emailTemplate } from "../../../shared/emailTemplate";
 import { emailHelper } from "../../../helpers/emailHelper";
 import unlinkFile from "../../../shared/unlinkFile";
+import redis from "../../../config/redisClient";
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
 
@@ -40,12 +41,22 @@ const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
     return createUser;
 };
 
-const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> => {
+const retrieveProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> => {
     const { id } = user;
+
+    const cachedUser = await redis.get(`user:${id}`);
+    if (cachedUser) {
+        return JSON.parse(cachedUser);
+    }
+
     const isExistUser: any = await User.isExistUserById(id);
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
+
+    // Cache user in Redis for future requests
+    await redis.set(`user:${id}`, JSON.stringify(isExistUser), 'EX', 60 * 5);
+    
     return isExistUser;
 };
 
@@ -66,11 +77,13 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
         payload,
         { new: true }
     );
+
+    await redis.del(`user:${id}`);
     return updateDoc;
 };
 
 export const UserService = {
     createUserToDB,
-    getUserProfileFromDB,
+    retrieveProfileFromDB,
     updateProfileToDB
 };

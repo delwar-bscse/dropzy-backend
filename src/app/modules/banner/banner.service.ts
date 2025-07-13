@@ -4,6 +4,7 @@ import { IBanner } from "./banner.interface";
 import { Banner } from "./banner.model";
 import unlinkFile from "../../../shared/unlinkFile";
 import mongoose from "mongoose";
+import redis from "../../../config/redisClient";
 
 const createBannerToDB = async (payload: IBanner): Promise<IBanner> => {
 
@@ -18,7 +19,16 @@ const createBannerToDB = async (payload: IBanner): Promise<IBanner> => {
 
 
 const retrieveBannerFromDB = async (): Promise<IBanner[]> => {
-    return await Banner.find({});
+
+    const cachedBanner = await redis.get(`banner`);
+    if (cachedBanner) {
+        return JSON.parse(cachedBanner);
+    }
+    const result = await Banner.find({});
+
+    // Cache user in Redis for future requests
+    await redis.set(`banner`, JSON.stringify(result), 'EX', 60 * 5);
+    return result;
 };
 
 const updateBannerToDB = async (id: string, payload: IBanner): Promise<IBanner | {}> => {
@@ -34,6 +44,8 @@ const updateBannerToDB = async (id: string, payload: IBanner): Promise<IBanner |
     }
 
     const banner: any = await Banner.findOneAndUpdate({ _id: id }, payload, { new: true });
+
+    await redis.del(`banner`);
     return banner;
 };
 
@@ -52,6 +64,7 @@ const deleteBannerToDB = async (id: string): Promise<IBanner | undefined> => {
 
     //delete from database
     await Banner.findByIdAndDelete(id);
+    await redis.del(`banner`);
     return;
 };
 

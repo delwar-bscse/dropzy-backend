@@ -11,7 +11,7 @@ const router = express.Router();
 router.route('/')
     .get(
         auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.USER),
-        UserController.getUserProfile
+        UserController.retrieveProfile
     )
     .post(
         validateRequest(createUserZodValidationSchema),

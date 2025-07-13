@@ -86,7 +86,13 @@ const userSchema = new Schema<IUser, UserModal>(
     {
         timestamps: true
     }
-)
+);
+
+userSchema.post("findOne", function (user: IUser) {
+    if (user.profile && !user.profile.startsWith('http')) {
+        user.profile = `http://${config.ip_address}:${config.port}${user.profile}`;
+    }
+})
 
 
 //exist user check

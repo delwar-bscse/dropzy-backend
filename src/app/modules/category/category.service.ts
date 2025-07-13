@@ -3,6 +3,7 @@ import ApiError from '../../../errors/ApiErrors'
 import { ICategory } from './category.interface'
 import { Category } from './category.model'
 import unlinkFile from '../../../shared/unlinkFile'
+import redis from '../../../config/redisClient'
 
 const createCategoryToDB = async (payload: ICategory) => {
     const isExistCategory = await Category.findOne({ name: payload.name })
@@ -23,7 +24,15 @@ const createCategoryToDB = async (payload: ICategory) => {
 }
 
 const retrieveCategoriesFromDB = async (): Promise<ICategory[]> => {
-    const result = await Category.find({})
+
+    const cachedCategories = await redis.get(`category`);
+    if (cachedCategories) {
+        return JSON.parse(cachedCategories);
+    }
+    const result = await Category.find({});
+
+    // Cache user in Redis for future requests
+    await redis.set(`category`, JSON.stringify(result), 'EX', 60 * 5);
     return result;
 }
 
@@ -44,6 +53,7 @@ const updateCategoryToDB = async (id: string, payload: ICategory) => {
         { new: true }
     )
 
+    await redis.del(`category`);
     return updateCategory
 }
 
@@ -54,6 +64,7 @@ const deleteCategoryToDB = async (id: string): Promise<ICategory | null> => {
     if (!deleteCategory) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Category doesn't exist")
     }
+    await redis.del(`category`);
     return deleteCategory
 }
 
