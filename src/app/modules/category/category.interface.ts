@@ -1,8 +1,9 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 export type ICategory = {
-  name: string;
-  image: string;
+    _id?: Types.ObjectId;
+    name: string;
+    image: string;
 }
 
 export type CategoryModel = Model<ICategory, Record<string, unknown>>

@@ -4,11 +4,7 @@ import { ReportService } from "./report.service";
 import sendResponse from "../../../shared/sendResponse";
 
 const createReport = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const payload = {
-        barber: req.user.id,
-        ...req.body
-    };
-    const result = await ReportService.createReportToDB(payload);
+    const result = await ReportService.createReportToDB(req.body);
 
     sendResponse(res, {
         statusCode: 200,

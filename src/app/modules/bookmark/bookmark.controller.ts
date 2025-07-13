@@ -4,10 +4,8 @@ import sendResponse from "../../../shared/sendResponse";
 import { BookmarkService } from "./bookmark.service";
 
 const toggleBookmark = catchAsync(async(req: Request, res: Response)=>{
-    const user = req.user.id;
-    const artist = req.params.id;
-    const payload:any = { user, artist }
-    const result = await BookmarkService.toggleBookmark(payload);
+
+    const result = await BookmarkService.toggleBookmark(req.body);
     
     sendResponse(res, {
         statusCode: 200,
@@ -16,9 +14,8 @@ const toggleBookmark = catchAsync(async(req: Request, res: Response)=>{
     })
 });
 
-const getBookmark = catchAsync(async(req: Request, res: Response)=>{
-    const user = req.user;
-    const result = await BookmarkService.getBookmark(user);
+const retrieveBookmarks = catchAsync(async(req: Request, res: Response)=>{
+    const result = await BookmarkService.retrieveBookmarksFromDB(req.user, req.query);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -28,4 +25,4 @@ const getBookmark = catchAsync(async(req: Request, res: Response)=>{
 });
 
 
-export const BookmarkController = {toggleBookmark, getBookmark}
+export const BookmarkController = {toggleBookmark, retrieveBookmarks}

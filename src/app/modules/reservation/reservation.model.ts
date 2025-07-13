@@ -4,12 +4,12 @@ import { randomBytes } from "crypto";
 
 const ReservationSchema = new Schema<IReservation, ReservationModel>(
     {
-        barber: {
+        author: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
         },
-        customer: {
+        provider: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
@@ -34,24 +34,26 @@ const ReservationSchema = new Schema<IReservation, ReservationModel>(
             type: Number,
             required: true
         },
+        stripeIntent: {
+            type: String,
+            required: true
+        },
         txid: {
             type: String,
             unique: true,
             index: true
-        },
-        cancelByCustomer: {
-            type: Boolean,
-            default: false
-        },
-        isReported: {
-            type: Boolean,
-            default: false
         }
 
     },
     { timestamps: true }
 );
 
+
+ReservationSchema.index({ author: 1 });
+ReservationSchema.index({ provider: 1 });
+ReservationSchema.index({ service: 1 });
+ReservationSchema.index({ status: 1 });
+ReservationSchema.index({ paymentStatus: 1 });
 
 ReservationSchema.pre("save", async function (next) {
     const reservation = this;

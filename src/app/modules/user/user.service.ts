@@ -1,4 +1,3 @@
-import { USER_ROLES } from "../../../enums/user";
 import { IUser } from "./user.interface";
 import { JwtPayload } from 'jsonwebtoken';
 import { User } from "./user.model";
@@ -8,25 +7,6 @@ import generateOTP from "../../../util/generateOTP";
 import { emailTemplate } from "../../../shared/emailTemplate";
 import { emailHelper } from "../../../helpers/emailHelper";
 import unlinkFile from "../../../shared/unlinkFile";
-
-const createAdminToDB = async (payload: any): Promise<IUser> => {
-
-    // check admin is exist or not;
-    const isExistAdmin = await User.findOne({ email: payload.email })
-    if (isExistAdmin) {
-        throw new ApiError(StatusCodes.CONFLICT, "This Email already taken");
-    }
-
-    // create admin to db
-    const createAdmin = await User.create(payload);
-    if (!createAdmin) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Admin');
-    } else {
-        await User.findByIdAndUpdate({ _id: createAdmin?._id }, { verified: true }, { new: true });
-    }
-
-    return createAdmin;
-}
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
 
@@ -92,6 +72,5 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
 export const UserService = {
     createUserToDB,
     getUserProfileFromDB,
-    updateProfileToDB,
-    createAdminToDB
+    updateProfileToDB
 };

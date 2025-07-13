@@ -5,8 +5,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { AuthService } from './auth.service';
 
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
-    const { ...verifyData } = req.body;
-    const result = await AuthService.verifyEmailToDB(verifyData);
+    const result = await AuthService.verifyEmailToDB(req.body);
 
     sendResponse(res, {
         success: true,
@@ -18,8 +17,7 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
 
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
-    const { ...loginData } = req.body;
-    const result = await AuthService.loginUserFromDB(loginData);
+    const result = await AuthService.loginUserFromDB(req.body);
 
     sendResponse(res, {
         success: true,
@@ -30,8 +28,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const forgetPassword = catchAsync(async (req: Request, res: Response) => {
-    const email = req.body.email;
-    const result = await AuthService.forgetPasswordToDB(email);
+    const result = await AuthService.forgetPasswordToDB(req.body.email);
 
     sendResponse(res, {
         success: true,
@@ -42,9 +39,7 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
-    const token = req.headers.authorization;
-    const { ...resetData } = req.body;
-    const result = await AuthService.resetPasswordToDB(token!, resetData);
+    const result = await AuthService.resetPasswordToDB(req.headers.authorization!, req.body);
 
     sendResponse(res, {
         success: true,
@@ -55,9 +50,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
-    const user = req.user;
-    const { ...passwordData } = req.body;
-    await AuthService.changePasswordToDB(user, passwordData);
+    await AuthService.changePasswordToDB(req.user, req.body);
 
     sendResponse(res, {
         success: true,
@@ -68,8 +61,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 
 
 const newAccessToken = catchAsync(async (req: Request, res: Response) => {
-    const { token } = req.body;
-    const result = await AuthService.newAccessTokenToUser(token);
+    const result = await AuthService.newAccessTokenToUser(req.body.token);
 
     sendResponse(res, {
         success: true,
@@ -80,8 +72,7 @@ const newAccessToken = catchAsync(async (req: Request, res: Response) => {
 });
 
 const resendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
-    const { email } = req.body;
-    const result = await AuthService.resendVerificationEmailToDB(email);
+    const result = await AuthService.resendVerificationEmailToDB(req.body.email);
 
     sendResponse(res, {
         success: true,

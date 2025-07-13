@@ -1,8 +1,9 @@
 import { Model, Types } from "mongoose";
 
 export type IReport = {
-    customer: Types.ObjectId;
-    barber: Types.ObjectId;
+    _id?: Types.ObjectId;
+    author: Types.ObjectId;
+    provider: Types.ObjectId;
     reservation: Types.ObjectId;
     reason: [];
 };

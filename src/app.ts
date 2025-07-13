@@ -4,8 +4,6 @@ import { StatusCodes } from "http-status-codes";
 import { Morgan } from "./shared/morgan";
 import router from '../src/app/routes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
-import session, { SessionOptions } from "express-session";
-import passport from "./config/passport";
 import requestIp from 'request-ip';
 import rateLimit from 'express-rate-limit';
 import ApiError from "./errors/ApiErrors";
@@ -41,20 +39,6 @@ app.use(limiter);
 
 //file retrieve
 app.use(express.static('uploads'));
-
-// Session middleware (must be before passport initialization)
-const sessionConfig: SessionOptions = {
-    secret: "your_secret_key",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-};
-
-app.use(session(sessionConfig) as any);
-
-// Initialize Passport
-app.use(passport.initialize() as any);
-app.use(passport.session());
 
 //router
 app.use('/api/v1', router);

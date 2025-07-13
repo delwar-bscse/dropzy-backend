@@ -17,8 +17,7 @@ const createAdmin = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteAdmin = catchAsync(async (req: Request, res: Response) => {
-    const payload = req.params.id;
-    const result = await AdminService.deleteAdminFromDB(payload);
+    const result = await AdminService.deleteAdminFromDB(req.body.admin);
 
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -29,20 +28,19 @@ const deleteAdmin = catchAsync(async (req: Request, res: Response) => {
 
 });
 
-const getAdmin = catchAsync(async (req: Request, res: Response) => {
+const retrieveAdmins = catchAsync(async (req: Request, res: Response) => {
 
-    const result = await AdminService.getAdminFromDB();
+    const result = await AdminService.retrievedAdminFromDB(req.query);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
         message: 'Admin Retrieved Successfully',
         data: result
     });
-
 });
 
 export const AdminController = {
     deleteAdmin,
     createAdmin,
-    getAdmin
+    retrieveAdmins
 };

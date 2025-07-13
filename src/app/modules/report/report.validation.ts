@@ -1,12 +1,10 @@
 import { z } from "zod"
-import { objectIdZodSchema } from "../../../helpers/checkObjectIdZodSchemaHelper"
+import { checkValidID } from "../../../shared/checkValidID"
 
-const createReportZodSchema = z.object({
+export const createReportZodValidationSchema = z.object({
     body: z.object({
-        customer: objectIdZodSchema("Customer Object Id is required"),
-        service: objectIdZodSchema("Service Object Id is required"),
+        provider: checkValidID("Provider Object ID is required"),
+        reservation: checkValidID("Reservation Object ID is required"),
         reason: z.array(z.string({ required_error: 'Reason is required' }))
     })  
-})
-
-export const ReportValidation = {createReportZodSchema}
+});

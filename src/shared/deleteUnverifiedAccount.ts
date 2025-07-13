@@ -3,10 +3,13 @@ import { User } from "../app/modules/user/user.model";
 import { logger } from "../shared/logger";
 
 export const deleteUnverifiedAccount = () => {
+
+    // Runs every minute
     const GRACE_PERIOD_MINUTES = 5;
 
-    cron.schedule("* * * * *", async () => { // Runs every minute
+    cron.schedule("* * * * *", async () => {
         try {
+            // Calculate the cutoff date (5 minutes ago)
             const cutoffDate = new Date(Date.now() - GRACE_PERIOD_MINUTES * 60 * 1000);
 
             // Delete unverified accounts older than the grace period
@@ -20,5 +23,6 @@ export const deleteUnverifiedAccount = () => {
             logger.error("Error during unverified account cleanup:", error);
         }
     });
+    
     logger.info("Unverified account cleanup job scheduled to run every minute.");
 };

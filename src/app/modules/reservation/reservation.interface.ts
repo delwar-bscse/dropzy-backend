@@ -1,15 +1,15 @@
 import { Model, Types } from "mongoose"
 
 export type IReservation = {
-    barber: Types.ObjectId;
-    customer: Types.ObjectId;
+    _id?: Types.ObjectId;
+    author: Types.ObjectId;
+    provider: Types.ObjectId;
     service: Types.ObjectId;
-    status: "Upcoming" | "Accepted" | "Rejected" | "Canceled" | "Completed";
-    paymentStatus: "Pending" | "Paid" | "Refunded";
     price: number;
     txid: string;
-    cancelByCustomer: boolean;
-    isReported: boolean
+    stripeIntent: string;
+    paymentStatus: "Pending" | "Paid" | "Refunded";
+    status: "Upcoming" | "Accepted" | "Rejected" | "Canceled" | "Completed";
 }
 
 export type ReservationModel = Model<IReservation, Record<string, unknown>>;

@@ -2,52 +2,59 @@ import express, { NextFunction, Request, Response } from "express";
 import auth from "../../middlewares/auth";
 import { USER_ROLES } from "../../../enums/user";
 import { ReservationController } from "./reservation.controller";
+import ApiError from "../../../errors/ApiErrors";
+import { StatusCodes } from "http-status-codes";
+import validateRequest from "../../middlewares/validateRequest";
+import { reservationZodValidationSchema } from "./reservation.validation";
 const router = express.Router();
 
 router.route("/")
     .post(
-        auth(USER_ROLES.CUSTOMER),
-        async (req: Request, res: Response, next: NextFunction) => {
+        auth(USER_ROLES.USER),
+        (req: Request, res: Response, next: NextFunction) => {
             try {
-                const { price, ...othersPayload } = req.body;
-
-                if (price > 0) {
-                    othersPayload.price = Number(price);
-                }
-
-                req.body = { ...othersPayload, customer: req.user.id };
+                req.body = { ...req.body, author: req.user.id };
                 next();
 
             } catch (error) {
-                res.status(500).json({ message: "Failed to Convert string to number" });
+                throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to Process Reservation");
             }
         },
+        validateRequest(reservationZodValidationSchema),
         ReservationController.createReservation
     )
     .get(
-        auth(USER_ROLES.CUSTOMER), 
-        ReservationController.customerReservation
+        auth(USER_ROLES.USER), 
+        ReservationController.retrieveReservation
     );
 
-router.get("/barber",
-    auth(USER_ROLES.BARBER),
-    ReservationController.barberReservation
+router.get("/success",
+    auth(USER_ROLES.USER),
+    ReservationController.successPayment
 );
 
-router.get("/barber-summery",
-    auth(USER_ROLES.BARBER),
-    ReservationController.reservationSummerForBarber
+router.get("/failed/:id",
+    auth(USER_ROLES.USER),
+    ReservationController.failedPayment
 );
 
 router.route("/:id")
     .get(
-        auth(USER_ROLES.BARBER),
+        auth(USER_ROLES.USER),
         ReservationController.reservationDetails
     )
     .patch(
-        auth(USER_ROLES.BARBER),
-        ReservationController.respondedReservation
+        auth(USER_ROLES.USER),
+        ReservationController.acceptReservation
     )
+    .delete(
+        auth(USER_ROLES.USER),
+        ReservationController.rejectReservation
+    )
+    .put(
+        auth(USER_ROLES.USER),
+        ReservationController.completeReservation
+    );
 
 
 export const ReservationRoutes = router;

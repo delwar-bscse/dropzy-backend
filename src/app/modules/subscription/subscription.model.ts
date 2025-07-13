@@ -4,10 +4,6 @@ import { ISubscription, SubscriptionModel } from "./subscription.interface";
 
 const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
     {
-        customerId: {
-            type: String,
-            required: true
-        },
         price: {
             type: Number,
             required: true
@@ -17,13 +13,9 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
             ref: "User",
             required: true
         },
-        package: {
+        plan: {
             type: Schema.Types.ObjectId,
-            ref: "Package",
-            required: true
-        },
-        trxId: {
-            type: String,
+            ref: "Plan",
             required: true
         },
         subscriptionId: {
@@ -38,10 +30,6 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
             type: String,
             required: true
         },
-        remaining: {
-            type: Number,
-            required: true
-        },
         status: {
             type: String,
             enum: ["expired", "active", "cancel"],
@@ -54,5 +42,8 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
         timestamps: true
     }
 )
+
+subscriptionSchema.index({ user: 1 });
+subscriptionSchema.index({ status: 1 });
 
 export const Subscription = model<ISubscription, SubscriptionModel>("Subscription", subscriptionSchema)

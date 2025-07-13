@@ -22,6 +22,7 @@ export type IUser = {
     email: string;
     password: string;
     location: string;
+    fcmToken: string[];
     profile: string;
     verified: boolean;
     authentication?: IAuthenticationProps;

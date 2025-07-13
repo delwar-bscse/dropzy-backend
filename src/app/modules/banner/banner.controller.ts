@@ -7,19 +7,8 @@ import { StatusCodes } from "http-status-codes";
 
 
 const createBanner = catchAsync(async (req:Request, res:Response) => {
-
-    const bannerData = req.body;
-    let image = "";
-    if (req.files && "image" in req.files && req.files.image[0]) {
-        image = `/images/${req.files.image[0].filename}`;
-    }
-    
-    const data = {
-        ...bannerData,
-        image,
-    };
   
-    const result = await BannerService.createBannerToDB(data);
+    const result = await BannerService.createBannerToDB(req.body);
   
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -29,9 +18,9 @@ const createBanner = catchAsync(async (req:Request, res:Response) => {
     });
 });
   
-const getAllBanner = catchAsync(async (req:Request, res:Response) => {
+const retrieveBanner = catchAsync(async (req:Request, res:Response) => {
 
-    const result = await BannerService.getAllBannerFromDB();
+    const result = await BannerService.retrieveBannerFromDB();
 
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -43,18 +32,7 @@ const getAllBanner = catchAsync(async (req:Request, res:Response) => {
   
 const updateBanner =catchAsync(async (req:Request, res:Response) => {
 
-    const id = req.params.id;
-    const updateData = req.body;
-    let image;
-
-    if (req.files && "image" in req.files && req.files.image[0]) {
-        image = `/images/${req.files.image[0].filename}`;
-    }
-    const data = {
-        ...updateData,
-        image,
-    };
-    const result = await BannerService.updateBannerToDB(id, data);
+    const result = await BannerService.updateBannerToDB(req.params.id, req.body);
   
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -66,8 +44,7 @@ const updateBanner =catchAsync(async (req:Request, res:Response) => {
   
 const deleteBanner = catchAsync(async (req:Request, res:Response) => {
     
-    const id = req.params.id;
-    const result = await BannerService.deleteBannerToDB(id);
+    const result = await BannerService.deleteBannerToDB(req.params.id);
   
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -79,7 +56,7 @@ const deleteBanner = catchAsync(async (req:Request, res:Response) => {
 
 export const BannerController = {
     createBanner,
-    getAllBanner,
+    retrieveBanner,
     updateBanner,
     deleteBanner
 }

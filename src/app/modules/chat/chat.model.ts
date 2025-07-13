@@ -13,7 +13,8 @@ const chatSchema = new Schema<IChat, ChatModel>(
             type: Boolean,
             default: true
         }
-    }
+    },
+    { timestamps: true }
 )
 
 export const Chat = model<IChat, ChatModel>('Chat', chatSchema);

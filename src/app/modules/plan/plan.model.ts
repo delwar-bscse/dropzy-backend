@@ -1,9 +1,9 @@
 import { model, Schema } from "mongoose";
-import { IPackage, PackageModel } from "./package.interface";
+import { IPlan, PlanModel } from "./plan.interface";
 
-const packageSchema = new Schema<IPackage, PackageModel>(
+const PlanSchema = new Schema<IPlan, PlanModel>(
     {
-        title: {
+        name: {
             type: String,
             required: true
         },
@@ -29,14 +29,6 @@ const packageSchema = new Schema<IPackage, PackageModel>(
             type: String,
             required: true
         },
-        credit: {
-            type: Number,
-            required: true
-        },
-        loginLimit: {
-            type: Number,
-            required: true
-        },
         paymentLink: {
             type: String,
             required: true
@@ -52,4 +44,8 @@ const packageSchema = new Schema<IPackage, PackageModel>(
     }
 )
 
-export const Package = model<IPackage, PackageModel>("Package", packageSchema)
+PlanSchema.index({ paymentType: 1 });
+PlanSchema.index({ status: 1 });
+PlanSchema.index({ duration: 1 });
+
+export const Plan = model<IPlan, PlanModel>("Plan", PlanSchema)

@@ -3,6 +3,7 @@ import catchAsync from "../../../shared/catchAsync";
 import { SubscriptionService } from "./subscription.service";
 import sendResponse from "../../../shared/sendResponse";
 import { StatusCodes } from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
 
 
 const subscriptions = catchAsync( async(req: Request, res: Response)=>{
@@ -17,7 +18,7 @@ const subscriptions = catchAsync( async(req: Request, res: Response)=>{
 });
 
 const subscriptionDetails = catchAsync( async(req: Request, res: Response)=>{
-    const result = await SubscriptionService.subscriptionDetailsFromDB(req.user);
+    const result = await SubscriptionService.subscriptionDetailsFromDB(req.user as JwtPayload);
 
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -27,20 +28,8 @@ const subscriptionDetails = catchAsync( async(req: Request, res: Response)=>{
     })
 });
 
-const companySubscriptionDetails= catchAsync( async(req: Request, res: Response)=>{
-    const result = await SubscriptionService.companySubscriptionDetailsFromDB(req.params.id);
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "Company Subscription Details Retrieved Successfully",
-        data: result.subscription
-    })
-});
-
 
 export const SubscriptionController = {
     subscriptions,
-    subscriptionDetails,
-    companySubscriptionDetails
+    subscriptionDetails
 }

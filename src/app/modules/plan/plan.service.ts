@@ -1,18 +1,18 @@
 import { StatusCodes } from "http-status-codes";
 import ApiError from "../../../errors/ApiErrors";
-import { IPackage } from "./package.interface";
-import { Package } from "./package.model";
+import { IPlan } from "./plan.interface";
+import { Plan } from "./plan.model";
 import mongoose from "mongoose";
 import stripe from "../../../config/stripe";
 import { createStripeProductCatalog } from "../../../stripe/createStripeProductCatalog";
 
-const createPackageToDB = async(payload: IPackage): Promise<IPackage | null>=>{
+const createPlanToDB = async(payload: IPlan): Promise<IPlan | null>=>{
 
     const productPayload = {
-        title: payload.title,
+        title: payload.name,
         description: payload.description,
         duration: payload.duration,
-        price: Number(payload.price),
+        price: Number(payload.price),   
     }
 
     const product = await createStripeProductCatalog(productPayload);
@@ -27,36 +27,37 @@ const createPackageToDB = async(payload: IPackage): Promise<IPackage | null>=>{
         payload.productId = product.productId
     }
 
-    const result = await Package.create(payload);
+    const result = await Plan.create(payload);
     if(!result){
         await stripe.products.del(product.productId);
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to created Package")
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to created Plan")
     }
 
     return result;
 }
 
-const updatePackageToDB = async(id: string, payload: IPackage): Promise<IPackage | null>=>{
+const updatePlanToDB = async(id: string, payload: IPlan): Promise<IPlan | null>=>{
 
     if(!mongoose.Types.ObjectId.isValid(id)){
         throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
     }
 
-    const result = await Package.findByIdAndUpdate(
+    const result = await Plan.findByIdAndUpdate(
         {_id: id},
         payload,
         { new: true } 
     );
 
     if(!result){
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to Update Package")
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to Update Plan")
     }
 
     return result;
 }
 
 
-const getPackageFromDB = async(paymentType: string): Promise<IPackage[]>=>{
+const retrievedPlanFromDB = async(paymentType: string): Promise<IPlan[]>=>{
+
     const query:any = {
         status: "Active"
     }
@@ -64,24 +65,27 @@ const getPackageFromDB = async(paymentType: string): Promise<IPackage[]>=>{
         query.paymentType = paymentType
     }
 
-    const result = await Package.find(query);
+    const result = await Plan.find(query).lean().exec();
     return result;
 }
 
-const getPackageDetailsFromDB = async(id: string): Promise<IPackage | null>=>{
-    if(!mongoose.Types.ObjectId.isValid(id)){
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
-    }
-    const result = await Package.findById(id);
-    return result;
-}
+const retrievedPlanDetailsFromDB = async(id: string): Promise<IPlan | null>=>{
 
-const deletePackageToDB = async(id: string): Promise<IPackage | null>=>{
     if(!mongoose.Types.ObjectId.isValid(id)){
         throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
     }
 
-    const result = await Package.findByIdAndUpdate(
+    const result = await Plan.findById(id).lean().exec();
+
+    return result;
+}
+
+const deletePlanToDB = async(id: string): Promise<IPlan | null>=>{
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+    }
+
+    const result = await Plan.findByIdAndUpdate(
         {_id: id},
         {status: "Delete"},
         {new: true}
@@ -94,10 +98,10 @@ const deletePackageToDB = async(id: string): Promise<IPackage | null>=>{
     return result;
 }
 
-export const PackageService = {
-    createPackageToDB,
-    updatePackageToDB,
-    getPackageFromDB,
-    getPackageDetailsFromDB,
-    deletePackageToDB
+export const PlanService = {
+    createPlanToDB,
+    updatePlanToDB,
+    retrievedPlanFromDB,
+    retrievedPlanDetailsFromDB,
+    deletePlanToDB
 }

@@ -49,6 +49,7 @@ const userSchema = new Schema<IUser, UserModal>(
             type: Boolean,
             default: false,
         },
+        fcmToken: { type: [String], required: false },
         authentication: {
             type: {
                 isResetPassword: {
@@ -68,7 +69,7 @@ const userSchema = new Schema<IUser, UserModal>(
         },
         accountInformation: {
             status: {
-              type: Boolean,
+                type: Boolean,
                 default: false,
             },
             stripeAccountId: {
@@ -93,23 +94,23 @@ userSchema.statics.isExistUserById = async (id: string) => {
     const isExist = await User.findById(id);
     return isExist;
 };
-  
+
 userSchema.statics.isExistUserByEmail = async (email: string) => {
     const isExist = await User.findOne({ email });
     return isExist;
 };
-  
+
 //account check
 userSchema.statics.isAccountCreated = async (id: string) => {
-    const isUserExist:any = await User.findById(id);
+    const isUserExist: any = await User.findById(id);
     return isUserExist.accountInformation.status;
 };
-  
+
 //is match password
-userSchema.statics.isMatchPassword = async ( password: string, hashPassword: string): Promise<boolean> => {
+userSchema.statics.isMatchPassword = async (password: string, hashPassword: string): Promise<boolean> => {
     return await bcrypt.compare(password, hashPassword);
 };
-  
+
 //check user
 userSchema.pre('save', async function (next) {
     //check user
@@ -117,9 +118,9 @@ userSchema.pre('save', async function (next) {
     if (isExist) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
     }
-  
+
     //password hash
-    this.password = await bcrypt.hash( this.password, Number(config.bcrypt_salt_rounds));
+    this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
     next();
 });
 export const User = model<IUser, UserModal>("User", userSchema)

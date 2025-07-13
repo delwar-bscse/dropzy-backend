@@ -1,9 +1,9 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { Notification } from './notification.model';
-import QueryBuilder from '../../../helpers/QueryBuilder';
 import { FilterQuery } from 'mongoose';
 import ApiError from '../../../errors/ApiErrors';
 import { StatusCodes } from 'http-status-codes';
+import QueryBuilder from '../../../helpers/QueryBuilder';
 
 const getNotificationFromDB = async (user: JwtPayload, query: FilterQuery<any>): Promise<Object> => {
 

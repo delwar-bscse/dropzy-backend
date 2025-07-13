@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { IPackage } from "../app/modules/package/package.interface";
+import { IPackage } from "../app/modules/plan/plan.interface";
 import stripe from "../config/stripe";
 import ApiError from "../errors/ApiErrors";
 import config from "../config";

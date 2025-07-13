@@ -19,4 +19,7 @@ const bookmarkSchema = new Schema<IBookmark, BookmarkModel>(
     }
 );
 
+bookmarkSchema.index({ user: 1 });
+bookmarkSchema.index({ service: 1 });
+
 export const Bookmark = model<IBookmark, BookmarkModel>("Bookmark", bookmarkSchema);

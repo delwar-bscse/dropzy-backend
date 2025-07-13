@@ -21,10 +21,21 @@ import { IUser } from '../user/user.interface';
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
 
-    const { email, password } = payload;
+    const { email, password, fcmToken } = payload;
+
     const isExistUser:any = await User.findOne({ email }).select('+password');
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    }
+
+    // check fcmToken if the role is not include the SUPER_ADMIN and ADMIN
+    if (!["SUPER_ADMIN", "ADMIN"].includes(isExistUser.role) && !fcmToken) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "FCM Token is required!");
+    }
+
+    // store fcmToken
+    if (!["SUPER_ADMIN", "ADMIN"].includes(isExistUser.role) && fcmToken) {
+        await User.findOneAndUpdate({ email }, { $push: { fcmToken } });
     }
   
     //check verified and status

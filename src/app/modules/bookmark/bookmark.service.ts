@@ -3,11 +3,13 @@ import ApiError from "../../../errors/ApiErrors";
 import { IBookmark } from "./bookmark.interface";
 import { Bookmark } from "./bookmark.model";
 import { JwtPayload } from "jsonwebtoken";
+import { FilterQuery } from "mongoose";
+import QueryBuilder from "../../../helpers/QueryBuilder";
 
-const toggleBookmark = async (payload: {user: JwtPayload, service: string}): Promise<string> => {
+const toggleBookmark = async (payload: IBookmark): Promise<string> => {
 
-     // Check if the bookmark already exists
-     const existingBookmark = await Bookmark.findOne({
+    // Check if the bookmark already exists
+    const existingBookmark = await Bookmark.findOne({
         user: payload.user,
         service: payload.service
     });
@@ -28,33 +30,19 @@ const toggleBookmark = async (payload: {user: JwtPayload, service: string}): Pro
 };
 
 
-const getBookmark = async (user: JwtPayload): Promise<IBookmark[]>=>{
+const retrieveBookmarksFromDB = async (user: JwtPayload, query: FilterQuery<IBookmark>): Promise<{bookmarks: IBookmark[], pagination: any}> => {
 
+    const BookmarkQuery = new QueryBuilder(
+        Bookmark.find({ user: user?.id }).lean().exec(),
+        query
+    ).paginate();
 
-
-    const result:any = await Bookmark.find({ user: user?.id })
-        .populate({
-            path: 'artist',
-            model: 'User',
-            select: '_id name profile',
-            populate:{
-                path: 'lesson',
-                model: 'Lesson',
-                select: 'rating totalRating gallery lessonTitle'
-            }
-        }).select("artist")
+    const [bookmarks, pagination] = await Promise.all([
+        BookmarkQuery.queryModel.populate("service"),
+        BookmarkQuery.getPaginationInfo()
+    ])
     
-
-    return result?.map((bookmark:any) => {
-        const {lesson, ...otherData} = bookmark?.artist?.toObject();
-
-        // Remove the lesson ID field if it exists
-        if (lesson?._id) {
-            delete lesson?._id;
-        }
-
-        return {...otherData, ...lesson, status: true};
-    });
+    return { bookmarks, pagination };
 }
 
-export const BookmarkService = {toggleBookmark, getBookmark}
+export const BookmarkService = { toggleBookmark, retrieveBookmarksFromDB }

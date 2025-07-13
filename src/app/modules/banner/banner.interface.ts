@@ -1,6 +1,7 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 export type IBanner = {
+    _id?: Types.ObjectId;
     name: string;
     image: string;
 }

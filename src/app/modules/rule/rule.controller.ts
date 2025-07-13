@@ -18,8 +18,9 @@ const createPrivacyPolicy = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
-const getPrivacyPolicy = catchAsync(async (req: Request, res: Response) => {
-    const result = await RuleService.getPrivacyPolicyFromDB()
+
+const retrievePrivacyPolicy = catchAsync(async (req: Request, res: Response) => {
+    const result = await RuleService.retrievePrivacyPolicyFromDB()
   
     sendResponse(res, {
         success: true,
@@ -43,8 +44,8 @@ const createTermsAndCondition = catchAsync( async (req: Request, res: Response) 
     })
 })
   
-const getTermsAndCondition = catchAsync(async (req: Request, res: Response) => {
-    const result = await RuleService.getTermsAndConditionFromDB()
+const retrieveTermsAndCondition = catchAsync(async (req: Request, res: Response) => {
+    const result = await RuleService.retrieveTermsAndConditionFromDB()
   
     sendResponse(res, {
         success: true,
@@ -67,8 +68,8 @@ const createAbout = catchAsync(async (req: Request, res: Response) => {
     })
 })
   
-const getAbout = catchAsync(async (req: Request, res: Response) => {
-    const result = await RuleService.getAboutFromDB()
+const retrieveAbout = catchAsync(async (req: Request, res: Response) => {
+    const result = await RuleService.retrieveAboutFromDB()
   
     sendResponse(res, {
         success: true,
@@ -80,9 +81,9 @@ const getAbout = catchAsync(async (req: Request, res: Response) => {
 
 export const RuleController = {
     createPrivacyPolicy,
-    getPrivacyPolicy,
+    retrievePrivacyPolicy,
     createTermsAndCondition,
-    getTermsAndCondition,
+    retrieveTermsAndCondition,
     createAbout,
-    getAbout
+    retrieveAbout
 }  

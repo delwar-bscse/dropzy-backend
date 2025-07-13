@@ -1,6 +1,7 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 export type IFaq = {
+    _id?: Types.ObjectId;
     question: string;
     answer: string;
 };
