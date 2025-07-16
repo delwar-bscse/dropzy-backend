@@ -15,12 +15,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-      - run: npm ci
+          cache: "yarn"
+
+      - name: Install dependencies with Yarn
+        run: yarn install --frozen-lockfile
+
       - name: Change Directory
         run: cd /home/template/template-runner/_work/template/template
-      - run: pm2 restart 0
+
+      - name: Restart PM2 Process
+        run: pm2 restart 0
