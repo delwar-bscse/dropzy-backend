@@ -30,8 +30,7 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --frozen-lockfile
 
-      - name: Install PM2
-        run: yarn global add pm2
-
-      - name: Restart PM2 Process
-        run: pm2 restart 0
+      - name: Restart server via tmux
+        run: |
+          tmux send-keys -t backend-session-name C-c   # Stop the existing process
+          tmux send-keys -t backend-session-name "yarn run dev" C-m   # Restart it
