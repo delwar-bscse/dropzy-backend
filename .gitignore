@@ -1,4 +1,4 @@
 node_modules
 uploads
 /winston
-firebaseSDK.json
+src/firebaseSDK.json

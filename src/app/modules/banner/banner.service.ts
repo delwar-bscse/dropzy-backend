@@ -14,6 +14,8 @@ const createBannerToDB = async (payload: IBanner): Promise<IBanner> => {
         throw new ApiError(StatusCodes.OK, "Failed to created banner");
     }
 
+    await redis.del(`banner`);
+
     return createBanner;
 };
 

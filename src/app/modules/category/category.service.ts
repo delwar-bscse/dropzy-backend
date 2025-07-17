@@ -13,12 +13,14 @@ const createCategoryToDB = async (payload: ICategory) => {
         throw new ApiError(StatusCodes.NOT_ACCEPTABLE, "This Category Name Already Exist");
     }
 
-    const category: any = await Category.create(payload);
+    const category = await Category.create(payload);
 
     if (!category) {
         unlinkFile(payload.image);
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Category')
     }
+
+    await redis.del(`category`);
     return category;
 
 }
@@ -37,7 +39,7 @@ const retrieveCategoriesFromDB = async (): Promise<ICategory[]> => {
 }
 
 const updateCategoryToDB = async (id: string, payload: ICategory) => {
-    const isExistCategory: any = await Category.findById(id);
+    const isExistCategory = await Category.findById(id);
 
     if (!isExistCategory) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Category doesn't exist");

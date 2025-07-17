@@ -13,6 +13,7 @@ import { CategoryRoutes } from '../modules/category/category.routes';
 import { BannerRoutes } from '../modules/banner/banner.routes';
 import { BookmarkRoutes } from '../modules/bookmark/bookmark.routes';
 import { AdminRoutes } from '../modules/admin/admin.route';
+import { SubscriptionRoutes } from '../modules/subscription/subscription.routes';
 const router = express.Router();
 
 const apiRoutes = [
@@ -30,6 +31,7 @@ const apiRoutes = [
     { path: "/banner", route: BannerRoutes },
     { path: "/bookmark", route: BookmarkRoutes },
     { path: "/admin", route: AdminRoutes},
+    { path: "/subscription", route: SubscriptionRoutes},
 ]
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

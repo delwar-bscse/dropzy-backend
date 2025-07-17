@@ -26,6 +26,8 @@ const seedSuperAdmin = async () => {
         await User.create(superUser);
         logger.info(colors.green('✔ Super admin created successfully!'));
     }
+
+    return;
 };
 
 export default seedSuperAdmin;

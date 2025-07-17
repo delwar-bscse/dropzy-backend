@@ -16,7 +16,7 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 });
 
 const retrievedMessage = catchAsync(async (req: Request, res: Response) => {
-    const messages = await MessageService.retrievedMessageFromDB(req.params.id, req.query);
+    const messages = await MessageService.retrievedMessageFromDB(req.body.chat, req.query);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

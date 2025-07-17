@@ -36,7 +36,7 @@ const reservationDetails = catchAsync(async (req: Request, res: Response) => {
 
 
 const acceptReservation = catchAsync(async (req: Request, res: Response) => {
-    const reservation = await ReservationService.acceptReservationToDB(req.params.id);
+    const reservation = await ReservationService.acceptReservationToDB(req.params.reservation);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -46,7 +46,7 @@ const acceptReservation = catchAsync(async (req: Request, res: Response) => {
 }); 
 
 const rejectReservation = catchAsync(async (req: Request, res: Response) => {
-    const reservation = await ReservationService.rejectReservationToDB(req.params.id);
+    const reservation = await ReservationService.rejectReservationToDB(req.params.reservation);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -56,7 +56,7 @@ const rejectReservation = catchAsync(async (req: Request, res: Response) => {
 });
 
 const completeReservation = catchAsync(async (req: Request, res: Response) => {
-    const reservation = await ReservationService.completeReservationToDB(req.params.id);
+    const reservation = await ReservationService.completeReservationToDB(req.params.reservation);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -86,13 +86,24 @@ const failedPayment = catchAsync(async (req: Request, res: Response) => {
     })
 });
 
+const cancelReservation = catchAsync(async (req: Request, res: Response) => {
+    const reservation = await ReservationService.cancelReservationToDB(req.params.reservation);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Reservation canceled successfully",
+        data: reservation
+    })
+});
+
 export const ReservationController = {
     createReservation,
     
     acceptReservation,
     rejectReservation,
     completeReservation,
-
+    cancelReservation,
+    
     retrieveReservation,
     reservationDetails,
     successPayment,

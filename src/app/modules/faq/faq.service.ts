@@ -5,7 +5,8 @@ import { Faq } from './faq.model';
 import { checkMongooseIDValidation } from '../../../shared/checkMongooseIDValidation';
 import QueryBuilder from '../../../helpers/QueryBuilder';
 import { FilterQuery } from 'mongoose';
-
+import redis from '../../../config/redisClient';
+import qs from 'qs';
 
 const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
 
@@ -13,11 +14,20 @@ const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
     if (!faq) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to created Faq');
     }
-
+    await redis.del(`faq`);
     return faq;
 };
 
 const faqsFromDB = async (query: FilterQuery<any>): Promise<{ faqs: IFaq[], pagination: any }> => {
+
+
+    const queryKey = qs.stringify(query, { addQueryPrefix: false, encode: false }); // e.g. "page=2&limit=10"
+    const redisKey = `faq:${queryKey || 'default'}`;
+
+    const cachedFaqs = await redis.get(redisKey);
+    if (cachedFaqs) {
+        return JSON.parse(cachedFaqs);
+    }
 
     const FaqQuery = new QueryBuilder(
         Faq.find({}),
@@ -29,6 +39,7 @@ const faqsFromDB = async (query: FilterQuery<any>): Promise<{ faqs: IFaq[], pagi
         FaqQuery.getPaginationInfo()
     ]);
 
+    await redis.set(redisKey, JSON.stringify({ faqs, pagination }), 'EX', 60 * 5);
     return { faqs, pagination };
 };
 
@@ -37,6 +48,7 @@ const deleteFaqToDB = async (id: string): Promise<IFaq | undefined> => {
     checkMongooseIDValidation(id, "Faq")
 
     await Faq.findByIdAndDelete(id);
+    await redis.del(`faq`);
     return;
 };
 
@@ -51,7 +63,7 @@ const updateFaqToDB = async (id: string, payload: IFaq): Promise<IFaq> => {
     if (!updatedFaq) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to updated Faq');
     }
-
+    await redis.del(`faq`);
     return updatedFaq;
 };
 

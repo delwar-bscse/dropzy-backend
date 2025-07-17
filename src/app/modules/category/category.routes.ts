@@ -59,7 +59,6 @@ router.route('/:id')
                 throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to Process Category");
             }
         },
-        validateRequest(createCategoryZodValidationSchema),
         CategoryController.updateCategory,
     )
     .delete(

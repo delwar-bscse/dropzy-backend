@@ -70,7 +70,7 @@ const retrieveAllServiceFromDB = async (query: FilterQuery<IService>): Promise<{
     const ServiceQuery = new QueryBuilder(
         Service.find().lean().exec(),
         query
-    ).paginate();
+    ).paginate().filter();
 
     const [services, pagination] = await Promise.all([
         ServiceQuery.queryModel.populate("category", "name"),

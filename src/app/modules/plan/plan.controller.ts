@@ -27,7 +27,7 @@ const updatePlan = catchAsync(async(req: Request, res: Response)=>{
 })
 
 const retrievePlan = catchAsync(async(req: Request, res: Response)=>{
-    const result = await PlanService.retrievedPlanFromDB(req.query.paymentType as string);
+    const result = await PlanService.retrievedPlanFromDB(req.query);
 
     sendResponse(res, {
         statusCode: StatusCodes.OK,

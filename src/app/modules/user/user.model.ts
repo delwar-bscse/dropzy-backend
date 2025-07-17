@@ -69,8 +69,7 @@ const userSchema = new Schema<IUser, UserModal>(
         },
         accountInformation: {
             status: {
-                type: Boolean,
-                default: false,
+                type: Boolean
             },
             stripeAccountId: {
                 type: String,
@@ -89,7 +88,7 @@ const userSchema = new Schema<IUser, UserModal>(
 );
 
 userSchema.post("findOne", function (user: IUser) {
-    if (user.profile && !user.profile.startsWith('http')) {
+    if (user && user?.profile && !user?.profile.startsWith('http')) {
         user.profile = `http://${config.ip_address}:${config.port}${user.profile}`;
     }
 })
@@ -119,14 +118,26 @@ userSchema.statics.isMatchPassword = async (password: string, hashPassword: stri
 
 //check user
 userSchema.pre('save', async function (next) {
+
     //check user
-    const isExist = await User.findOne({ email: this.email });
-    if (isExist) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
+    if (this.email) {
+        const isExist = await User.findOne({ email: this.email });
+        if (isExist) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
+        }
+    }
+
+    if(this.role === USER_ROLES.USER){
+        this.accountInformation ={
+            status: false
+        };
     }
 
     //password hash
-    this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
+    if (this.password) {
+        this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_rounds));
+    }
     next();
 });
-export const User = model<IUser, UserModal>("User", userSchema)
+
+export const User = model<IUser, UserModal>("User", userSchema);

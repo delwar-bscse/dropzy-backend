@@ -271,6 +271,49 @@ const completeReservationToDB = async (id: string): Promise<IReservation | null>
     }
 }
 
+const cancelReservationToDB = async (id: string): Promise<IReservation | null> => {
+
+    checkMongooseIDValidation(id, "Reservation");
+
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+
+        const updatedReservation = await Reservation.findOneAndUpdate(
+            { _id: id },
+            { $set: { status: "Canceled" } },
+            { new: true, session },
+        );
+
+        if (!updatedReservation) {
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Failed to update reservation');
+        }
+
+        const data = {
+            text: "Your reservation has been Canceled.",
+            receiver: updatedReservation.provider,
+            referenceId: id,
+            screen: "RESERVATION"
+        }
+
+        sendNotifications(data, session);
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return updatedReservation;
+
+    } catch (error) {
+        session.abortTransaction();
+        session.endSession();
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to Process Reservation');
+    } finally {
+        session.endSession();
+    }
+}
+
 
 export const ReservationService = {
     createReservationToDB,
@@ -279,6 +322,7 @@ export const ReservationService = {
     acceptReservationToDB,
     rejectReservationToDB,
     completeReservationToDB,
+    cancelReservationToDB,
     successPaymentToDB,
     failedPaymentToDB
 }

@@ -33,7 +33,7 @@ const subscriptionsFromDB = async (query: FilterQuery<ISubscription>): Promise<{
     const subscriptionQuery = new QueryBuilder(
         Subscription.find(query).lean().exec(),
         query
-    ).paginate();
+    ).paginate().filter();
 
     const [subscriptions, pagination] = await Promise.all([
         subscriptionQuery.queryModel.populate("plan", "title price").populate("user", "name profile email"),

@@ -26,6 +26,18 @@ router.route("/")
     .get(
         auth(USER_ROLES.USER), 
         ReservationController.retrieveReservation
+    )
+    .patch(
+        auth(USER_ROLES.USER),
+        ReservationController.acceptReservation
+    )
+    .delete(
+        auth(USER_ROLES.USER),
+        ReservationController.rejectReservation
+    )
+    .put(
+        auth(USER_ROLES.USER),
+        ReservationController.completeReservation
     );
 
 router.get("/success",
@@ -43,18 +55,9 @@ router.route("/:id")
         auth(USER_ROLES.USER),
         ReservationController.reservationDetails
     )
-    .patch(
-        auth(USER_ROLES.USER),
-        ReservationController.acceptReservation
-    )
     .delete(
         auth(USER_ROLES.USER),
-        ReservationController.rejectReservation
-    )
-    .put(
-        auth(USER_ROLES.USER),
-        ReservationController.completeReservation
+        ReservationController.cancelReservation
     );
-
 
 export const ReservationRoutes = router;
