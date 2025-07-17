@@ -12,6 +12,10 @@ jobs:
       matrix:
         node-version: [22.x]
 
+    defaults:
+      run:
+        working-directory: /home/template/template-runner/_work/template/template
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,12 +30,5 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --frozen-lockfile
 
-      - name: Change Directory
-        run: cd /home/template/template-runner/_work/template/template
-
-      - name: Install PM2
-        run: yarn global add pm2
-
-      - name: Restart PM2 Process
-        run: pm2 restart 0
-
+      - name: start the project
+        run: yarn run dev
