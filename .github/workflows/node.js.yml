@@ -30,8 +30,5 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --frozen-lockfile
 
-      - name: Kill current session 
-        run: tmux kill-session -t server
-
-      - name: Kill current session 
-        run: tmux attach -t server
+      - name: Kill current session
+        run: tmux new -s server
