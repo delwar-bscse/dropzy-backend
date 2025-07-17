@@ -30,7 +30,8 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --frozen-lockfile
 
-      - name: Restart server via tmux
-        run: |
-          tmux send-keys -t backend-session-name C-c   # Stop the existing process
-          tmux send-keys -t backend-session-name "yarn run dev" C-m   # Restart it
+      - name: Kill current session 
+        run: tmux kill-session -t server
+
+      - name: Kill current session 
+        run: tmux attach -t server
