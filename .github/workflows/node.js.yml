@@ -34,7 +34,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: restart the project with PM2
-        run: pm2 restart server || pm2 start yarn --name server -- run start
+        run: pm2 restart server
 
       - name: Save PM2 process list
         run: pm2 save
