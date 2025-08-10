@@ -1,10 +1,11 @@
 import Redis from 'ioredis';
 import colors from 'colors';
 import { errorLogger, logger } from '../shared/logger';
+import config from '../config';
 
 const redis = new Redis({
-    host: '127.0.0.1',
-    port: 6379,
+    host: config.redis.host as string,
+    port: Number(config.redis.port),
 });
 
 export const connectRedis = () => {

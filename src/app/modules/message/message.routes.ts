@@ -12,10 +12,10 @@ router.route('/')
     .post(
         auth(USER_ROLES.USER),
         fileUploadHandler(),
-        (req: Request, res: Response, next: NextFunction) => {
+        async(req: Request, res: Response, next: NextFunction) => {
             try {
 
-                const image = getSingleFilePath(req.files, 'image');
+                const image = await getSingleFilePath(req.files, 'image');
 
                 req.body = { 
                     ...req.body,

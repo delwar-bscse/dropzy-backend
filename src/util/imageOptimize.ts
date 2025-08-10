@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import path from 'path';
+import fs from 'fs/promises';
 
 export const optimizeImage = async (filePath: string): Promise<string> => {
     const fileExt = path.extname(filePath);
@@ -10,5 +11,11 @@ export const optimizeImage = async (filePath: string): Promise<string> => {
         .jpeg({ quality: 80 }) // Convert to JPEG and reduce quality to 80%
         .toFile(optimizedPath);
 
-    return optimizedPath; // Return new optimized file path
+    // Delete the original file
+    await fs.unlink(filePath);
+
+    // Rename optimized file to original name
+    await fs.rename(optimizedPath, filePath);
+
+    return filePath;
 };

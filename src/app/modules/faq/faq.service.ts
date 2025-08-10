@@ -14,7 +14,13 @@ const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
     if (!faq) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to created Faq');
     }
-    await redis.del(`faq`);
+
+    const keys = await redis.smembers('faq:cacheKeys');
+    if (keys.length > 0) {
+        await redis.del(...keys);
+        await redis.del('faq:cacheKeys');
+    }
+
     return faq;
 };
 
@@ -40,6 +46,8 @@ const faqsFromDB = async (query: FilterQuery<any>): Promise<{ faqs: IFaq[], pagi
     ]);
 
     await redis.set(redisKey, JSON.stringify({ faqs, pagination }), 'EX', 60 * 5);
+    await redis.sadd('faq:cacheKeys', redisKey);
+
     return { faqs, pagination };
 };
 
@@ -48,7 +56,11 @@ const deleteFaqToDB = async (id: string): Promise<IFaq | undefined> => {
     checkMongooseIDValidation(id, "Faq")
 
     await Faq.findByIdAndDelete(id);
-    await redis.del(`faq`);
+    const keys = await redis.smembers('faq:cacheKeys');
+    if (keys.length > 0) {
+        await redis.del(...keys);
+        await redis.del('faq:cacheKeys');
+    }
     return;
 };
 
@@ -63,7 +75,12 @@ const updateFaqToDB = async (id: string, payload: IFaq): Promise<IFaq> => {
     if (!updatedFaq) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to updated Faq');
     }
-    await redis.del(`faq`);
+
+    const keys = await redis.smembers('faq:cacheKeys');
+    if (keys.length > 0) {
+        await redis.del(...keys); // Bulk delete
+        await redis.del('faq:cacheKeys');
+    }
     return updatedFaq;
 };
 

@@ -2,21 +2,21 @@ import { z } from 'zod';
 
 const createVerifyEmailZodSchema = z.object({
     body: z.object({
-        email: z.string({ required_error: 'Email is required' }),
+        email: z.string({ required_error: 'Email is required' }).email({ message: 'Invalid email format' }),
         oneTimeCode: z.number({ required_error: 'One time code is required' })
     })
 });
 
 const createLoginZodSchema = z.object({
     body: z.object({
-        email: z.string({ required_error: 'Email is required' }),
+        email: z.string({ required_error: 'Email is required' }).email({ message: 'Invalid email format' }),
         password: z.string({ required_error: 'Password is required' })
     })
 });
   
 const createForgetPasswordZodSchema = z.object({
     body: z.object({
-        email: z.string({ required_error: 'Email is required' }),
+        email: z.string({ required_error: 'Email is required' }).email({ message: 'Invalid email format' }),
     })
 });
   

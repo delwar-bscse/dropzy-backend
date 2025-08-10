@@ -20,10 +20,10 @@ router.route('/')
     .patch(
         auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.USER),
         fileUploadHandler(),
-        (req: Request, res: Response, next: NextFunction) => {
+        async (req: Request, res: Response, next: NextFunction) => {
             try {
 
-                const profile = getSingleFilePath(req.files, "image");
+                const profile = await getSingleFilePath(req.files, "image");
                 req.body = { ...req.body, profile };
                 next();
 

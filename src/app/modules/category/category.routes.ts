@@ -15,10 +15,10 @@ router.route('/')
     .post(
         auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
         fileUploadHandler(),
-        (req: Request, res: Response, next: NextFunction) => {
+        async (req: Request, res: Response, next: NextFunction) => {
             try {
 
-                const image = getSingleFilePath(req.files, 'image');
+                const image = await getSingleFilePath(req.files, 'image');
 
                 req.body = {
                     ...req.body,
@@ -43,10 +43,10 @@ router.route('/:id')
     .patch(
         auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
         fileUploadHandler(),
-        (req: Request, res: Response, next: NextFunction) => {
+        async(req: Request, res: Response, next: NextFunction) => {
             try {
 
-                const image = getSingleFilePath(req.files, 'image');
+                const image = await getSingleFilePath(req.files, 'image');
 
                 req.body = {
                     ...req.body,

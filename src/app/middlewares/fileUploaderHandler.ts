@@ -6,7 +6,10 @@ import path from 'path';
 import ApiError from '../../errors/ApiErrors';
 
 const uploadDirectories: Record<string, string> = {
-    image: 'image'
+    image: 'image',
+    video: 'video',
+    doc: 'doc',
+    pdf: 'pdf'
 };
 
 
@@ -54,23 +57,32 @@ const fileUploadHandler = () => {
         },
     });
 
+    //allowed mime types
+    const allowedMimeTypes: Record<string, string[]> = {
+        image: ['image/jpeg', 'image/png', 'image/jpg'],
+        pdf: ['application/pdf'],
+        doc: ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        video: ['video/mp4', 'video/mpeg'],
+    };
+
+
     //file filter
     const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
 
-        // console.log("file handler",file)
-        if (file.fieldname === 'image') {
-            if (
-                file.mimetype === 'image/jpeg' ||
-                file.mimetype === 'image/png' ||
-                file.mimetype === 'image/jpg'
-            ) {
-                cb(null, true);
-            } else {
-                cb(new ApiError(StatusCodes.BAD_REQUEST, 'Only .jpeg, .png, .jpg file supported'))
-            }
-        } else {
-            cb(new ApiError(StatusCodes.BAD_REQUEST, 'This file is not supported'))
+        //allowed mime types
+        const allowedTypes = allowedMimeTypes[file.fieldname];
+
+        //check allowed mime types
+        if (!allowedTypes) {
+            return cb(new ApiError(StatusCodes.BAD_REQUEST, `File field '${file.fieldname}' is not supported`));
         }
+
+        //check file type
+        if (!allowedTypes.includes(file.mimetype)) {
+            return cb(new ApiError(StatusCodes.BAD_REQUEST, `File type '${file.mimetype}' is not supported`));
+        }
+        cb(null, true);
+
     };
 
     const upload = multer({ storage: storage, fileFilter: filterFilter })

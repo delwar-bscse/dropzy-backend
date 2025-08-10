@@ -14,14 +14,14 @@ const router = express.Router();
 router.route("/")
     .post(
         auth(USER_ROLES.USER),
-        (req: Request, res: Response, next: NextFunction) => {
+        async (req: Request, res: Response, next: NextFunction) => {
             try {
 
                 // extact only price;
                 const { price, ...restPayload } = req.body;
 
                 // retrieved image through helper function
-                const image = getSingleFilePath(req.files, "image");
+                const image = await getSingleFilePath(req.files, "image");
 
                 req.body = {
                     ...restPayload,
@@ -61,14 +61,14 @@ router.route("/:id")
     .patch(
         auth(USER_ROLES.USER),
         fileUploadHandler(),
-        (req: Request, res: Response, next: NextFunction) => {
+        async(req: Request, res: Response, next: NextFunction) => {
             try {
 
                 // extact only price;
                 const { price, ...restPayload } = req.body;
 
                 // retrieved image through helper function
-                const image = getSingleFilePath(req.files, "image");
+                const image = await getSingleFilePath(req.files, "image");
 
                 // pass all the data through the next middleware
                 req.body = {
