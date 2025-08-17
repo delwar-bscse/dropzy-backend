@@ -6,6 +6,7 @@ interface IStripeAccountInfo {
     stripeAccountId?: string;
     externalAccountId?: string;
     currency?: string;
+    accountUrl?: string;
 }
 
 interface IAuthenticationProps {

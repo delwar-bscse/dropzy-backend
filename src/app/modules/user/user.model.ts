@@ -79,6 +79,9 @@ const userSchema = new Schema<IUser, UserModal>(
             },
             currency: {
                 type: String,
+            },
+            accountUrl: {
+                type: String,
             }
         }
     },

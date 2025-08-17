@@ -38,7 +38,7 @@ const retrievePrivacyPolicyFromDB = async () => {
     if (!result) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Privacy policy doesn't exist!")
     }
-    await redis.set(`privacy`, JSON.stringify(result), 'EX', 60 * 5);
+    await redis.set(`privacy`, JSON.stringify(result), 'EX', 60 * 30);
     return result
 }
 
@@ -70,7 +70,7 @@ const retrieveTermsAndConditionFromDB = async () => {
     if (!result) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Terms and conditions doesn't  exist!")
     }
-    await redis.set(`terms`, JSON.stringify(result), 'EX', 60 * 5);
+    await redis.set(`terms`, JSON.stringify(result), 'EX', 60 * 30);
     return result
 }
 
@@ -101,7 +101,7 @@ const retrieveAboutFromDB = async () => {
     if (!result) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "About doesn't exist!")
     }
-    await redis.set(`about`, JSON.stringify(result), 'EX', 60 * 5);
+    await redis.set(`about`, JSON.stringify(result), 'EX', 60 * 30);
     return result
 }
   

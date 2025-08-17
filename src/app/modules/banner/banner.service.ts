@@ -28,8 +28,10 @@ const retrieveBannerFromDB = async (): Promise<IBanner[]> => {
     }
     const result = await Banner.find({});
 
-    // Cache user in Redis for future requests
-    await redis.set(`banner`, JSON.stringify(result), 'EX', 60 * 5);
+    if(result?.length > 0){
+        await redis.set(`banner`, JSON.stringify(result), 'EX', 60 * 5);
+    }
+
     return result;
 };
 

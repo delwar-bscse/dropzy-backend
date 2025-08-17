@@ -37,17 +37,6 @@ const retrievePlan = catchAsync(async(req: Request, res: Response)=>{
     })
 })
 
-const planDetails = catchAsync(async(req: Request, res: Response)=>{
-    const result = await PlanService.retrievedPlanDetailsFromDB(req.params.id);
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "Plan Details Retrieved Successfully",
-        data: result
-    })
-})
-
 
 const deletePlan = catchAsync(async(req: Request, res: Response)=>{
     const result = await PlanService.deletePlanToDB(req.params.id);
@@ -64,6 +53,5 @@ export const PlanController = {
     createPlan,
     updatePlan,
     retrievePlan,
-    planDetails,
     deletePlan
 }

@@ -7,6 +7,7 @@ import QueryBuilder from '../../../helpers/QueryBuilder';
 import { FilterQuery } from 'mongoose';
 import redis from '../../../config/redisClient';
 import qs from 'qs';
+import { clearFaqCache } from './faq.util';
 
 const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
 
@@ -15,20 +16,20 @@ const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to created Faq');
     }
 
-    const keys = await redis.smembers('faq:cacheKeys');
-    if (keys.length > 0) {
-        await redis.del(...keys);
-        await redis.del('faq:cacheKeys');
-    }
-
+    clearFaqCache(redis);
     return faq;
 };
 
 const faqsFromDB = async (query: FilterQuery<any>): Promise<{ faqs: IFaq[], pagination: any }> => {
 
+    const allowedParams = ["page", "limit"];
+    const filteredQuery = Object.fromEntries(
+        Object.entries(query).filter(([key]) => allowedParams.includes(key))
+    );
 
-    const queryKey = qs.stringify(query, { addQueryPrefix: false, encode: false }); // e.g. "page=2&limit=10"
-    const redisKey = `faq:${queryKey || 'default'}`;
+    // const queryKey = qs.stringify(filteredQuery, { addQueryPrefix: false, encode: false });
+    const queryKey = qs.stringify(filteredQuery, { encode: false }) || 'default';
+    const redisKey = `faq:${queryKey}`;
 
     const cachedFaqs = await redis.get(redisKey);
     if (cachedFaqs) {
@@ -45,8 +46,14 @@ const faqsFromDB = async (query: FilterQuery<any>): Promise<{ faqs: IFaq[], pagi
         FaqQuery.getPaginationInfo()
     ]);
 
-    await redis.set(redisKey, JSON.stringify({ faqs, pagination }), 'EX', 60 * 5);
-    await redis.sadd('faq:cacheKeys', redisKey);
+    // Tiered TTL ( popular page getting time for cache )
+    const ttl = filteredQuery.page === 1 ? 60 * 10 : 60 * 3;
+
+    // 5. Cache only if data is useful
+    if (faqs.length > 0) {
+        await redis.set(redisKey, JSON.stringify({ faqs, pagination }), "EX", ttl);
+        await redis.sadd("faq:cacheKeys", redisKey);
+    }
 
     return { faqs, pagination };
 };
@@ -55,12 +62,13 @@ const deleteFaqToDB = async (id: string): Promise<IFaq | undefined> => {
 
     checkMongooseIDValidation(id, "Faq")
 
-    await Faq.findByIdAndDelete(id);
-    const keys = await redis.smembers('faq:cacheKeys');
-    if (keys.length > 0) {
-        await redis.del(...keys);
-        await redis.del('faq:cacheKeys');
+    const feq = await Faq.findByIdAndDelete(id);
+
+    if( !feq) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete Faq');
     }
+
+    clearFaqCache(redis);
     return;
 };
 
@@ -76,11 +84,7 @@ const updateFaqToDB = async (id: string, payload: IFaq): Promise<IFaq> => {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to updated Faq');
     }
 
-    const keys = await redis.smembers('faq:cacheKeys');
-    if (keys.length > 0) {
-        await redis.del(...keys); // Bulk delete
-        await redis.del('faq:cacheKeys');
-    }
+    clearFaqCache(redis);
     return updatedFaq;
 };
 

@@ -1,17 +1,13 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import colors from 'colors';
-import {
-    handleAccountUpdatedEvent,
-    handleSubscriptionCreated,
-    handleSubscriptionDeleted,
-    handleSubscriptionUpdated,
-} from '../handlers';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../shared/logger';
 import config from '../config';
 import ApiError from '../errors/ApiErrors';
 import stripe from '../config/stripe';
+import { handleSubscriptionCreated } from './handleSubscriptionCreated';
+import { handleConnectedAccount } from './handleConnectedAccount';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
 
@@ -44,16 +40,8 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
                 await handleSubscriptionCreated(data as Stripe.Subscription);
                 break;
 
-            case 'customer.subscription.updated':
-                await handleSubscriptionUpdated(data as Stripe.Subscription);
-                break;
-
-            case 'customer.subscription.deleted':
-                await handleSubscriptionDeleted(data as Stripe.Subscription);
-                break;
-
             case 'account.updated':
-                await handleAccountUpdatedEvent(data as Stripe.Account);
+                await handleConnectedAccount(data as Stripe.Account);
                 break;
 
             default:

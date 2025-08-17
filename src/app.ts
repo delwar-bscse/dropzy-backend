@@ -7,6 +7,7 @@ import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import requestIp from 'request-ip';
 import rateLimit from 'express-rate-limit';
 import ApiError from "./errors/ApiErrors";
+// import handleStripeWebhook from "./stripe/handleStripeWebhook";
 const app = express();
 
 const limiter = rateLimit({
@@ -25,6 +26,14 @@ const limiter = rateLimit({
     }
 });
 
+
+/* // Stripe webhook route
+app.use(
+    '/api/stripe/webhook',
+    express.raw({ type: 'application/json' }),
+    handleStripeWebhook
+);
+ */
 // morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);

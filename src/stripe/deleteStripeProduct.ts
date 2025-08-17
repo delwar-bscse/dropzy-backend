@@ -1,6 +1,6 @@
 import stripe from "../config/stripe";
 
-export const deleteStripeProductCatalog = async (productId: string): Promise<{ success: boolean }> => {
+export const deleteStripeProduct = async (productId: string): Promise<{ success: boolean }> => {
 
     // Fetch all active prices for the product
     const prices = await stripe.prices.list({ product: productId, active: true });
@@ -14,8 +14,10 @@ export const deleteStripeProductCatalog = async (productId: string): Promise<{ s
     const archivedProduct = await stripe.products.update(productId, { active: false });
 
     if(archivedProduct){
+        console.log("Product deleted successfully");
         return { success: true };
     }
 
+    console.log("Failed to delete product");
     return { success: false };
 };

@@ -4,8 +4,10 @@ import { IPlan } from "./plan.interface";
 import { Plan } from "./plan.model";
 import mongoose, { FilterQuery } from "mongoose";
 import stripe from "../../../config/stripe";
-import { createStripeProductCatalog } from "../../../stripe/createStripeProductCatalog";
-import QueryBuilder from "../../../helpers/QueryBuilder";
+import { createStripeProduct } from "../../../stripe/createStripeProduct";
+import redis from "../../../config/redisClient";
+import { updateStripeProduct } from "../../../stripe/updateStripeProduct";
+import { deleteStripeProduct } from "../../../stripe/deleteStripeProduct";
 
 const createPlanToDB = async (payload: IPlan): Promise<IPlan | null> => {
 
@@ -16,7 +18,7 @@ const createPlanToDB = async (payload: IPlan): Promise<IPlan | null> => {
         price: Number(payload.price),
     }
 
-    const product = await createStripeProductCatalog(productPayload);
+    const product = await createStripeProduct(productPayload);
 
 
     if (!product) {
@@ -34,6 +36,8 @@ const createPlanToDB = async (payload: IPlan): Promise<IPlan | null> => {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to created Plan")
     }
 
+    await redis.del(`plan`);
+
     return result;
 }
 
@@ -41,6 +45,26 @@ const updatePlanToDB = async (id: string, payload: IPlan): Promise<IPlan | null>
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+    }
+
+    const plan = await Plan.findById(id).lean().exec();
+    if(!plan){
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+    }
+
+
+    if(payload?.price && payload?.duration){
+        const productPayload = {
+            duration: payload.duration,
+            price: Number(payload.price),
+        }
+        const updateProduct = await updateStripeProduct(plan?.productId as string, productPayload);
+        if(!updateProduct){
+            throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to created updated payment link")
+        }
+
+        payload.paymentLink = updateProduct
+
     }
 
     const result = await Plan.findByIdAndUpdate(
@@ -52,6 +76,7 @@ const updatePlanToDB = async (id: string, payload: IPlan): Promise<IPlan | null>
     if (!result) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to Update Plan")
     }
+    await redis.del(`plan`);
 
     return result;
 }
@@ -59,24 +84,17 @@ const updatePlanToDB = async (id: string, payload: IPlan): Promise<IPlan | null>
 
 const retrievedPlanFromDB = async (query: FilterQuery<IPlan>): Promise<IPlan[]> => {
 
-    const PlanQuery = new QueryBuilder(
-        Plan.find({ status: "Active" }).lean().exec(),
-        query
-    ).paginate().filter();
-
-    const plans = await PlanQuery.queryModel;
-    return plans;
-}
-
-const retrievedPlanDetailsFromDB = async (id: string): Promise<IPlan | null> => {
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+    const cachedPlans = await redis.get(`plan`);
+    if (cachedPlans) {
+        return JSON.parse(cachedPlans);
     }
 
-    const result = await Plan.findById(id).lean().exec();
+    const plans = await Plan.find({ status: "Active" }).lean().exec();
 
-    return result;
+    if(plans?.length > 0){
+        await redis.set(`plan`, JSON.stringify(plans), 'EX', 60 * 30);
+    }
+    return plans;
 }
 
 const deletePlanToDB = async (id: string): Promise<IPlan | null> => {
@@ -94,6 +112,8 @@ const deletePlanToDB = async (id: string): Promise<IPlan | null> => {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to deleted Package")
     }
 
+    await deleteStripeProduct(result?.productId as string);
+    await redis.del(`plan`);
     return result;
 }
 
@@ -101,6 +121,5 @@ export const PlanService = {
     createPlanToDB,
     updatePlanToDB,
     retrievedPlanFromDB,
-    retrievedPlanDetailsFromDB,
     deletePlanToDB
 }

@@ -7,7 +7,7 @@ import { JwtPayload } from 'jsonwebtoken';
 
 // register user
 const createUser = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserService.createUserToDB(req.body);
+    await UserService.createUserToDB(req.body);
 
     sendResponse(res, {
         success: true,

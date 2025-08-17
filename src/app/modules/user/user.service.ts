@@ -49,13 +49,13 @@ const retrieveProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> 
         return JSON.parse(cachedUser);
     }
 
-    const isExistUser: any = await User.isExistUserById(id);
+    const isExistUser: any = await User.findById(id).select("name email profile accountInformation contact")
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
 
     // Cache user in Redis for future requests
-    await redis.set(`user:${id}`, JSON.stringify(isExistUser), 'EX', 60 * 5);
+    await redis.set(`user:${id}`, JSON.stringify(isExistUser), 'EX', 60 * 30);
     
     return isExistUser;
 };

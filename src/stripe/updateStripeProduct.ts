@@ -1,9 +1,7 @@
-import { StatusCodes } from "http-status-codes";
 import stripe from "../config/stripe";
-import ApiError from "../errors/ApiErrors";
 import config from "../config";
 
-export const updateStripeProductCatalog = async ( productId: string, payload:any ): Promise<string> => {
+export const updateStripeProduct = async ( productId: string, payload:any ): Promise<string | null> => {
     
     let interval: 'month' | 'year' = 'month'; 
     let intervalCount = 1;
@@ -41,7 +39,8 @@ export const updateStripeProductCatalog = async ( productId: string, payload:any
 
     // if failed to create new price
     if (!price) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create new price in Stripe");
+        console.log("Failed to create new price");
+        return null;
     }
 
     // retrieved current prices;
@@ -73,7 +72,8 @@ export const updateStripeProductCatalog = async ( productId: string, payload:any
 
     // if failed to create payment link
     if (!paymentLink.url) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create new payment link");
+        console.log("Failed to create new payment link");
+        return null;
     }
 
     return paymentLink.url;

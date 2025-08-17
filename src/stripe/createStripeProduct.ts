@@ -1,14 +1,14 @@
 import { StatusCodes } from "http-status-codes";
-import { IPackage } from "../app/modules/plan/plan.interface";
+import { IPlan } from "../app/modules/plan/plan.interface";
 import stripe from "../config/stripe";
 import ApiError from "../errors/ApiErrors";
 import config from "../config";
 
-export const createStripeProductCatalog = async ( payload: Partial<IPackage>): Promise<{ productId: string; paymentLink: string } | null> => {
+export const createStripeProduct = async ( payload: Partial<IPlan>): Promise<{ productId: string; paymentLink: string } | null> => {
 
     // Create Product in Stripe
     const product = await stripe.products.create({
-        name: payload.title as string,
+        name: payload.name as string,
         description: payload.description as string,
     });
 
