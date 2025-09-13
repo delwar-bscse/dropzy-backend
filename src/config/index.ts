@@ -19,6 +19,9 @@ export default{
         webhookSecret:process.env.WEBHOOK_SECRET,
         paymentSuccess:process.env.WEBHOOK_SECRET
     },
+    apple:{
+        app_shared_secret: process.env.APP_SHARED_SECRET,
+    },
     email:{
         from: process.env.EMAIL_FROM,
         user: process.env.EMAIL_USER,

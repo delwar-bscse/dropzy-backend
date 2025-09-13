@@ -8,6 +8,8 @@ import QueryBuilder from "../../../helpers/QueryBuilder";
 import ApiError from "../../../errors/ApiErrors";
 import { StatusCodes } from "http-status-codes";
 import redis from "../../../config/redisClient";
+import axios from "axios";
+import config from "../../../config";
 
 
 const subscriptionDetailsFromDB = async (user: JwtPayload): Promise<ISubscription> => {
@@ -39,7 +41,7 @@ const subscriptionDetailsFromDB = async (user: JwtPayload): Promise<ISubscriptio
 };
 
 
-const subscriptionsFromDB = async (query: FilterQuery<ISubscription>): Promise<{subscriptions: ISubscription[], pagination: any}> => {
+const subscriptionsFromDB = async (query: FilterQuery<ISubscription>): Promise<{ subscriptions: ISubscription[], pagination: any }> => {
 
     const subscriptionQuery = new QueryBuilder(
         Subscription.find(query).lean().exec(),
@@ -52,6 +54,24 @@ const subscriptionsFromDB = async (query: FilterQuery<ISubscription>): Promise<{
     ]);
 
     return { subscriptions, pagination };
+}
+
+const verifySubscription = async (user: JwtPayload, receiptData: string) => {
+
+    const response = await axios.post("https://buy.itunes.apple.com/verifyReceipt",
+        {
+            "receipt-data": receiptData,
+            "password": config.apple.app_shared_secret
+        },
+        {
+            headers: { "Content-Type": "application/json" }
+        }
+    );
+
+    if(!response.data){
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid receipt data');
+    }
+
 }
 
 export const SubscriptionService = {
