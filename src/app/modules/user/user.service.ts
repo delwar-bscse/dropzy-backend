@@ -8,6 +8,7 @@ import { emailTemplate } from "../../../shared/emailTemplate";
 import { emailHelper } from "../../../helpers/emailHelper";
 import unlinkFile from "../../../shared/unlinkFile";
 import redis from "../../../config/redisClient";
+import { TrackService } from "../track/track.service";
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
     let message = '';
@@ -115,17 +116,28 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
         }
     };
 
-    if (payload.address && payload.coordinates) {
-        console.log("Here will be created track_room")
-    }
-
     const updateDoc = await UserModel.findOneAndUpdate(
         { _id: id },
         newPayload,
         { new: true }
     );
 
+    if (!updateDoc) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update user');
+    }
+    
     await redis.del(`user:${id}`);
+
+    //create track room for tracking.
+    const track = await TrackService.createTrackToDB({
+        courier: id,
+        location: updateDoc.address,
+        coordinates: updateDoc.coordinates
+    });
+
+     if (!track) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create track');
+    }
     return {
         data: updateDoc
     };

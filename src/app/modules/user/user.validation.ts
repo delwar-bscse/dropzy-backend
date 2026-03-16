@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { USER_ROLES } from '../../../enums/user';
 
-// 2. Create User Schema
-export const createUserZodValidationSchema = z.object({
+// 1. Create User Schema
+const createUserZodValidationSchema = z.object({
     body: z.object({
         name: z.string({ required_error: 'Name is required' }),
         email: z.string({ required_error: 'Email is required' }).email({ message: 'Invalid email format' }),
@@ -11,7 +11,7 @@ export const createUserZodValidationSchema = z.object({
     })
 });
 
-// 1. Account Info Schema
+// Account Info
 const accountInfoSchema = z.object({
     status: z.boolean().optional(),
     accountId: z.string().optional(),
@@ -26,8 +26,8 @@ const accountInfoSchema = z.object({
     twintNumber: z.string().optional(),
 });
 
-// 3. User Schema
-export const updateUserZodValidationSchema = z.object({
+// 2. User Schema
+const updateUserZodValidationSchema = z.object({
     body: z.object({
         name: z.string().optional(),
         phoneNumber: z.string().optional(),

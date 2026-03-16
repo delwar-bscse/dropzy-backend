@@ -1,12 +1,11 @@
 import express, { NextFunction, Response, Request } from 'express';
 import { USER_ROLES } from '../../../enums/user';
 import { UserController } from './user.controller';
-import { createUserZodValidationSchema, updateUserZodValidationSchema, UserValidation } from './user.validation';
+import { UserValidation } from './user.validation';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import fileUploadHandler from '../../middlewares/fileUploaderHandler';
 import { getSingleFilePath } from '../../../shared/getFilePath';
-import z from 'zod';
 const router = express.Router();
 
 router.route('/')
@@ -15,7 +14,7 @@ router.route('/')
         UserController.retrieveProfile
     )
     .post(
-        validateRequest(createUserZodValidationSchema),
+        validateRequest(UserValidation.createUserZodValidationSchema),
         UserController.createUser
     )
     .patch(
@@ -29,13 +28,14 @@ router.route('/')
                 const imgBack = await getSingleFilePath(req.files, "imgBack");
 
                 console.log("Account info : ", req.body.accountInfo)
-                const { accountInfo, email, ...payload } = req.body;
+                const { accountInfo, coordinates, email, ...payload } = req.body;
                 
                 req.body = { 
                     ...payload, 
                     ...(profile && { profile }), 
                     ...(imgFront && { imgFront }), 
-                    ...(imgBack && { imgBack }), 
+                    ...(imgBack && { imgBack }),
+                    ...(coordinates && { coordinates: JSON.parse(coordinates) }),
                     ...(accountInfo && { accountInfo:JSON.parse(accountInfo) })
                 };
                 next();
