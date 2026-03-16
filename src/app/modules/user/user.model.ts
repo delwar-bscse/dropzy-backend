@@ -1,25 +1,21 @@
 import { model, Schema } from "mongoose";
 import { USER_ROLES } from "../../../enums/user";
-import { IUser, UserModal } from "./user.interface";
+import { IUser, TUserModal } from "./user.interface";
 import bcrypt from "bcrypt";
 import ApiError from "../../../errors/ApiErrors";
 import { StatusCodes } from "http-status-codes";
 import config from "../../../config";
 
-const userSchema = new Schema<IUser, UserModal>(
+const userSchema = new Schema<IUser, TUserModal>(
     {
-        name: {
-            type: String,
-            required: false,
-        },
-        appId: {
-            type: String,
-            required: false,
-        },
         role: {
             type: String,
             enum: Object.values(USER_ROLES),
             required: true,
+        },
+        name: {
+            type: String,
+            required: false,
         },
         email: {
             type: String,
@@ -27,27 +23,71 @@ const userSchema = new Schema<IUser, UserModal>(
             unique: true,
             lowercase: true,
         },
-        contact: {
-            type: String,
-            required: false,
-        },
         password: {
             type: String,
             required: false,
             select: 0,
-            minlength: 8,
+            minlength: 4,
         },
-        location: {
+        phoneNumber: {
+            type: String,
+            required: false,
+        },
+        countryCode: {
             type: String,
             required: false,
         },
         profile: {
             type: String,
-            default: 'https://res.cloudinary.com/dzo4husae/image/upload/v1733459922/zfyfbvwgfgshmahyvfyk.png',
+            default: "https://res.cloudinary.com/dbq7y6byo/image/upload/v1750680842/avatars/user_itpwmf.jpg"
+        },
+        imgFront: {
+            type: String,
+            required: false,
+        },
+        imgBack: {
+            type: String,
+            required: false,
+        },
+        dob: {
+            type: Date,
+            required: false,
+        },
+        address: {
+            type: String,
+            required: false,
+        },
+        coordinates: {
+            type: [Number],
+            required: false,
+        },
+        landRegion: {
+            type: String,
+            required: false,
+        },
+        city: {
+            type: String,
+            required: false,
+        },
+        zipCode: {
+            type: String,
+            required: false,
         },
         verified: {
             type: Boolean,
             default: false,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+        appId: {
+            type: String,
+            required: false,
         },
         fcmToken: { type: [String], required: false },
         authentication: {
@@ -67,11 +107,11 @@ const userSchema = new Schema<IUser, UserModal>(
             },
             select: 0
         },
-        accountInformation: {
+        accountInfo: {
             status: {
                 type: Boolean
             },
-            stripeAccountId: {
+            accountId: {
                 type: String,
             },
             externalAccountId: {
@@ -82,7 +122,26 @@ const userSchema = new Schema<IUser, UserModal>(
             },
             accountUrl: {
                 type: String,
-            }
+            },
+
+            accountHolderName: {
+                type: String,
+            },
+            iban: {
+                type: String,
+            },
+            landOfBank: {
+                type: String,
+            },
+            bankName: {
+                type: String,
+            },
+            cardNumber: {
+                type: String,
+            },
+            twintNumber: {
+                type: String,
+            },
         }
     },
     {
@@ -90,27 +149,26 @@ const userSchema = new Schema<IUser, UserModal>(
     }
 );
 
-userSchema.post("findOne", function (user: IUser) {
-    if (user && user?.profile && !user?.profile.startsWith('http')) {
-        user.profile = `http://${config.ip_address}:${config.port}${user.profile}`;
-    }
-})
-
+// userSchema.post("findOne", function (user: IUser) {
+//     if (user && user?.profile && !user?.profile.startsWith('http')) {
+//         user.profile = `http://${config.ip_address}:${config.port}${user.profile}`;
+//     }
+// })
 
 //exist user check
 userSchema.statics.isExistUserById = async (id: string) => {
-    const isExist = await User.findById(id);
+    const isExist = await UserModel.findById(id);
     return isExist;
 };
 
 userSchema.statics.isExistUserByEmail = async (email: string) => {
-    const isExist = await User.findOne({ email });
+    const isExist = await UserModel.findOne({ email });
     return isExist;
 };
 
 //account check
 userSchema.statics.isAccountCreated = async (id: string) => {
-    const isUserExist: any = await User.findById(id);
+    const isUserExist: any = await UserModel.findById(id);
     return isUserExist.accountInformation.status;
 };
 
@@ -124,17 +182,17 @@ userSchema.pre('save', async function (next) {
 
     //check user
     if (this.email) {
-        const isExist = await User.findOne({ email: this.email });
+        const isExist = await UserModel.findOne({ email: this.email, _id: { $ne: this._id } });
         if (isExist) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
         }
     }
 
-    if(this.role === USER_ROLES.USER){
-        this.accountInformation ={
-            status: false
-        };
-    }
+    // if (this.role === USER_ROLES.SENDER) {
+    //     this.accountInfo = {
+    //         status: false
+    //     };
+    // }
 
     //password hash
     if (this.password) {
@@ -143,4 +201,4 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
-export const User = model<IUser, UserModal>("User", userSchema);
+export const UserModel = model<IUser, TUserModal>("User", userSchema);

@@ -31,7 +31,6 @@ router.post(
 router.post(
     '/verify-email',
     async (req: Request, res: Response, next: NextFunction) => {
-
         try {
             const { email, oneTimeCode } = req.body;
 
@@ -54,7 +53,7 @@ router.post(
 
 router.post(
     '/change-password',
-    auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+    auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.COURIER, USER_ROLES.SENDER),
     validateRequest(AuthValidation.createChangePasswordZodSchema),
     AuthController.changePassword
 );
@@ -64,15 +63,16 @@ router.post(
     AuthController.resendVerificationEmail
 );
 
-router.post(
-    '/social-login',
-    AuthController.socialLogin
-);
-
 router.delete(
     '/delete-account',
-    auth(USER_ROLES.ADMIN),
+    auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.COURIER, USER_ROLES.SENDER),
     AuthController.deleteUser
+);
+
+router.patch(
+    '/swap-role',
+    auth(USER_ROLES.COURIER, USER_ROLES.SENDER),
+    AuthController.swapUserRole
 );
 
 export const AuthRoutes = router;

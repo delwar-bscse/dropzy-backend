@@ -4,9 +4,13 @@ import { StatusCodes } from 'http-status-codes';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import ApiError from '../../errors/ApiErrors';
+import { profile } from 'console';
 
 const uploadDirectories: Record<string, string> = {
     image: 'image',
+    profile: 'profile',
+    imgFront: 'imgFront',
+    imgBack: 'imgBack',
     video: 'video',
     doc: 'doc',
     pdf: 'pdf'
@@ -60,6 +64,9 @@ const fileUploadHandler = () => {
     //allowed mime types
     const allowedMimeTypes: Record<string, string[]> = {
         image: ['image/jpeg', 'image/png', 'image/jpg'],
+        profile: ['image/jpeg', 'image/png', 'image/jpg'],
+        imgFront: ['image/jpeg', 'image/png', 'image/jpg'],
+        imgBack: ['image/jpeg', 'image/png', 'image/jpg'],
         pdf: ['application/pdf'],
         doc: ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         video: ['video/mp4', 'video/mpeg'],
@@ -86,7 +93,12 @@ const fileUploadHandler = () => {
     };
 
     const upload = multer({ storage: storage, fileFilter: filterFilter })
-        .fields([{ name: 'image', maxCount: 3 }]);
+        .fields([
+            { name: 'image', maxCount: 3 },
+            { name: 'profile', maxCount: 1 },
+            { name: 'imgFront', maxCount: 1 },
+            { name: 'imgBack', maxCount: 1 },
+        ]);
     return upload;
 
 };

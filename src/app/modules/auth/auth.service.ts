@@ -15,39 +15,40 @@ import {
 import cryptoToken from '../../../util/cryptoToken';
 import generateOTP from '../../../util/generateOTP';
 import { ResetToken } from '../resetToken/resetToken.model';
-import { User } from '../user/user.model';
-import { IUser } from '../user/user.interface';
+import { UserModel } from '../user/user.model';
+import { USER_ROLES } from '../../../enums/user';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
 
-    const { email, password, fcmToken } = payload;
+    const { email, password, role } = payload;
 
-    const isExistUser:any = await User.findOne({ email }).select('+password');
+    const isExistUser: any = await UserModel.findOne({ email }).select('+password');
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
 
-    // check fcmToken if the role is not include the SUPER_ADMIN and ADMIN
-    if (!["SUPER_ADMIN", "ADMIN"].includes(isExistUser.role) && !fcmToken) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "FCM Token is required!");
+    if (isExistUser.isDeleted) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'This user is deleted! Please contact to admin');
     }
 
-    // store fcmToken
-    if (!["SUPER_ADMIN", "ADMIN"].includes(isExistUser.role) && fcmToken) {
-        await User.findOneAndUpdate({ email }, { $push: { fcmToken } });
-    }
-  
     //check verified and status
     if (!isExistUser.verified) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Please verify your account, then try to login again');
     }
-  
+
     //check match password
-    if ( password && !(await User.isMatchPassword(password, isExistUser.password))) {
+    if (password && !(await UserModel.isMatchPassword(password, isExistUser.password))) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
     }
-  
+
+    if (role) {
+        const res = await UserModel.findOneAndUpdate({ email }, { role }, { new: true });
+        if (res) {
+            isExistUser.role = res.role;
+        }
+    }
+
     //create token
     const accessToken = jwtHelper.createToken(
         { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
@@ -62,17 +63,17 @@ const loginUserFromDB = async (payload: ILoginData) => {
         config.jwt.jwtRefreshExpiresIn as string
     );
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, role: isExistUser.role };
 };
 
 //forget password
 const forgetPasswordToDB = async (email: string) => {
 
-    const isExistUser = await User.isExistUserByEmail(email);
+    const isExistUser = await UserModel.isExistUserByEmail(email);
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
-  
+
     //send mail
     const otp = generateOTP();
     const value = {
@@ -82,48 +83,48 @@ const forgetPasswordToDB = async (email: string) => {
 
     const forgetPassword = emailTemplate.resetPassword(value);
     emailHelper.sendEmail(forgetPassword);
-  
+
     //save to DB
     const authentication = {
         oneTimeCode: otp,
         expireAt: new Date(Date.now() + 3 * 60000)
     };
-    await User.findOneAndUpdate({ email }, { $set: { authentication } });
+    await UserModel.findOneAndUpdate({ email }, { $set: { authentication } });
 };
-  
+
 //verify email
-const verifyEmailToDB = async (payload: IVerifyEmail) => {
+const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
 
     const { email, oneTimeCode } = payload;
-    const isExistUser = await User.findOne({ email }).select('+authentication');
+    const isExistUser = await UserModel.findOne({ email }).select('+authentication');
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
-  
+
     if (!oneTimeCode) {
-        throw new ApiError( StatusCodes.BAD_REQUEST, 'Please give the otp, check your email we send a code');
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Please give the otp, check your email we send a code');
     }
-  
+
     if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'You provided wrong otp');
     }
-  
+
     const date = new Date();
     if (date > isExistUser.authentication?.expireAt) {
-        throw new ApiError( StatusCodes.BAD_REQUEST, 'Otp already expired, Please try again');
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Otp already expired, Please try again');
     }
-  
+
     let message;
     let data;
-  
+
     if (!isExistUser.verified) {
-        await User.findOneAndUpdate(
+        await UserModel.findOneAndUpdate(
             { _id: isExistUser._id },
             { verified: true, authentication: { oneTimeCode: null, expireAt: null } }
         );
         message = 'Email verify successfully';
     } else {
-        await User.findOneAndUpdate(
+        await UserModel.findOneAndUpdate(
             { _id: isExistUser._id },
             {
                 authentication: {
@@ -133,7 +134,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
                 }
             }
         );
-  
+
         //create token ;
         const createToken = cryptoToken();
         await ResetToken.create({
@@ -146,9 +147,9 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
     }
     return { data, message };
 };
-  
+
 //forget password
-const resetPasswordToDB = async ( token: string, payload: IAuthResetPassword ) => {
+const resetPasswordToDB = async (token: string, payload: IAuthResetPassword) => {
 
     const { newPassword, confirmPassword } = payload;
 
@@ -157,53 +158,53 @@ const resetPasswordToDB = async ( token: string, payload: IAuthResetPassword ) =
     if (!isExistToken) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
     }
-  
+
     //user permission check
-    const isExistUser = await User.findById(isExistToken.user).select('+authentication');
+    const isExistUser = await UserModel.findById(isExistToken.user).select('+authentication');
     if (!isExistUser?.authentication?.isResetPassword) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "You don't have permission to change the password. Please click again to 'Forgot Password'");
     }
-  
+
     //validity check
     const isValid = await ResetToken.isExpireToken(token);
     if (!isValid) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Token expired, Please click again to the forget password');
     }
-  
+
     //check password
     if (newPassword !== confirmPassword) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "New password and Confirm password doesn't match!");
     }
-  
-    const hashPassword = await bcrypt.hash( newPassword, Number(config.bcrypt_salt_rounds));
-  
+
+    const hashPassword = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds));
+
     const updateData = {
         password: hashPassword,
         authentication: {
             isResetPassword: false,
         }
     };
-  
-    await User.findOneAndUpdate(
-        { _id: isExistToken.user }, 
+
+    await UserModel.findOneAndUpdate(
+        { _id: isExistToken.user },
         updateData,
-        {new: true}
+        { new: true }
     );
 };
-  
-const changePasswordToDB = async ( user: JwtPayload, payload: IChangePassword) => {
+
+const changePasswordToDB = async (user: JwtPayload, payload: IChangePassword) => {
 
     const { currentPassword, newPassword, confirmPassword } = payload;
-    const isExistUser = await User.findById(user.id).select('+password');
+    const isExistUser = await UserModel.findById(user.id).select('+password');
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
-  
+
     //current password match
-    if ( currentPassword && !(await User.isMatchPassword(currentPassword, isExistUser.password))) {
+    if (currentPassword && !(await UserModel.isMatchPassword(currentPassword, isExistUser.password))) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect');
     }
-  
+
     //newPassword and current password
     if (currentPassword === newPassword) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Please give different password from current password');
@@ -211,60 +212,53 @@ const changePasswordToDB = async ( user: JwtPayload, payload: IChangePassword) =
 
     //new password and confirm password check
     if (newPassword !== confirmPassword) {
-        throw new ApiError( StatusCodes.BAD_REQUEST, "Password and Confirm password doesn't matched");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Password and Confirm password doesn't matched");
     }
-  
-    //hash password
-    const hashPassword = await bcrypt.hash( newPassword, Number(config.bcrypt_salt_rounds));
-  
-    const updateData = {
-        password: hashPassword,
-    };
 
-    await User.findOneAndUpdate({ _id: user.id }, updateData, { new: true });
+    isExistUser.set({ password: newPassword });
+    await isExistUser.save();
 };
 
-
-const newAccessTokenToUser = async(token: string)=>{
-
+const newAccessTokenToUser = async (token: string) => {
     // Check if the token is provided
     if (!token) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Token is required!');
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Token is required!');
     }
-  
+
+
     const verifyUser = jwtHelper.verifyToken(
-      token,
-      config.jwt.jwtRefreshSecret as Secret
+        token,
+        config.jwt.jwtRefreshSecret as Secret
     );
-  
-    const isExistUser = await User.findById(verifyUser?.id);
-    if(!isExistUser){
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized access")
+
+    const isExistUser = await UserModel.findById(verifyUser?.id);
+    if (!isExistUser) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized access")
     }
-  
+
     //create token
     const accessToken = jwtHelper.createToken(
-      { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
-      config.jwt.jwt_secret as Secret,
-      config.jwt.jwt_expire_in as string
+        { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+        config.jwt.jwt_secret as Secret,
+        config.jwt.jwt_expire_in as string
     );
-  
-    return { accessToken }
+
+    return { accessToken, role: isExistUser.role };
 }
-  
-const resendVerificationEmailToDB = async (email:string) => {
-  
+
+const resendVerificationEmailToDB = async (email: string) => {
+
     // Find the user by ID
-    const existingUser:any = await User.findOne({email:email}).lean();
-  
+    const existingUser: any = await UserModel.findOne({ email: email }).lean();
+
     if (!existingUser) {
         throw new ApiError(StatusCodes.NOT_FOUND, 'User with this email does not exist!',);
     }
-  
+
     if (existingUser?.isVerified) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'User is already verified!');
     }
-  
+
     // Generate OTP and prepare email
     const otp = generateOTP();
     const emailValues = {
@@ -273,89 +267,67 @@ const resendVerificationEmailToDB = async (email:string) => {
         email: existingUser.email,
     };
 
-    const accountEmailTemplate = emailTemplate.createAccount(emailValues);
+    const accountEmailTemplate = emailTemplate.resendOtp(emailValues);
     emailHelper.sendEmail(accountEmailTemplate);
-  
+
     // Update user with authentication details
     const authentication = {
         oneTimeCode: otp,
         expireAt: new Date(Date.now() + 3 * 60000),
     };
-  
-    await User.findOneAndUpdate(
+
+    await UserModel.findOneAndUpdate(
         { email: email },
         { $set: { authentication } },
         { new: true }
     );
-  
-    
 };
 
-// social authentication
-const socialLoginFromDB = async (payload: IUser) => {
+const swapUserRoleFromDB = async (id: string) => {
 
-    const { appId, role } = payload;
-
-    const isExistUser = await User.findOne({ appId });
-
-    if (isExistUser) {
-
-        //create token
-        const accessToken = jwtHelper.createToken(
-            { id: isExistUser._id, role: isExistUser.role },
-            config.jwt.jwt_secret as Secret,
-            config.jwt.jwt_expire_in as string
-        );
-
-        //create token
-        const refreshToken = jwtHelper.createToken(
-            { id: isExistUser._id, role: isExistUser.role },
-            config.jwt.jwtRefreshSecret as Secret,
-            config.jwt.jwtRefreshExpiresIn as string
-        );
-
-        return { accessToken, refreshToken };
-
-    } else {
-
-        const user = await User.create({ appId, role, verified: true });
-        if (!user) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to created User")
-        }
-
-        //create token
-        const accessToken = jwtHelper.createToken(
-            { id: user._id, role: user.role },
-            config.jwt.jwt_secret as Secret,
-            config.jwt.jwt_expire_in as string
-        );
-
-        //create token
-        const refreshToken = jwtHelper.createToken(
-            { id: user._id, role: user.role },
-            config.jwt.jwtRefreshSecret as Secret,
-            config.jwt.jwtRefreshExpiresIn as string
-        );
-
-        return { accessToken, refreshToken };
+    const isExistUser: any = await UserModel.findById(id);
+    if (!isExistUser) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
-}
 
-// delete user
-// delete user
+    if (isExistUser.isDeleted) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'This user is deleted! Please contact to admin');
+    }
+
+    isExistUser.role = isExistUser.role === USER_ROLES.SENDER ? USER_ROLES.COURIER : USER_ROLES.SENDER;
+    await isExistUser.save();
+
+    //create token
+    const accessToken = jwtHelper.createToken(
+        { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+        config.jwt.jwt_secret as Secret,
+        config.jwt.jwt_expire_in as string
+    );
+
+    //create token
+    const refreshToken = jwtHelper.createToken(
+        { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+        config.jwt.jwtRefreshSecret as Secret,
+        config.jwt.jwtRefreshExpiresIn as string
+    );
+
+    return { accessToken, refreshToken, role: isExistUser.role };
+};
+
+// soft delete user
 const deleteUserFromDB = async (user: JwtPayload, password: string) => {
 
-    const isExistUser = await User.findById(user.id).select('+password');
+    const isExistUser = await UserModel.findById(user.id).select('+password').lean();
     if (!isExistUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
 
     //check match password
-    if (password && !(await User.isMatchPassword(password, isExistUser.password))) {
+    if (password && !(await UserModel.isMatchPassword(password, isExistUser.password))) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect');
     }
 
-    const updateUser = await User.findByIdAndDelete(user.id);
+    const updateUser = await UserModel.findByIdAndUpdate(user.id, { isDeleted: true }, { new: true }).lean();
     if (!updateUser) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
     }
@@ -370,6 +342,6 @@ export const AuthService = {
     changePasswordToDB,
     newAccessTokenToUser,
     resendVerificationEmailToDB,
-    socialLoginFromDB,
-    deleteUserFromDB
+    deleteUserFromDB,
+    swapUserRoleFromDB
 };

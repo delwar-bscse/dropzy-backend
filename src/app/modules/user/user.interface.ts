@@ -1,12 +1,19 @@
 import { Model, Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
 
-interface IStripeAccountInfo {
+interface IAccountInfo {
     status?: boolean;
-    stripeAccountId?: string;
+    accountId?: string;
     externalAccountId?: string;
-    currency?: string;
     accountUrl?: string;
+
+    accountHolderName?: string;
+    iban?: string;
+    landOfBank?: string;
+    bankName?: string;
+    currency?: string;
+    cardNumber?: string;
+    twintNumber?: string;
 }
 
 interface IAuthenticationProps {
@@ -17,21 +24,31 @@ interface IAuthenticationProps {
 
 export type IUser = {
     _id?: Types.ObjectId;
-    name: string;
-    appId: string;
     role: USER_ROLES;
-    contact: string;
+    name: string;
     email: string;
     password: string;
-    location: string;
-    fcmToken: string[];
-    profile: string;
-    verified: boolean;
+    phoneNumber?: string;
+    countryCode?: string;
+    profile?: string;
+    imgFront?: string;
+    imgBack?: string;
+    dob?: Date;
+    address?: string;
+    coordinates?:[number, number];
+    landRegion?: string;
+    city?: string;
+    zipCode?: string;
+    verified?: boolean;     
+    isActive?: boolean;
+    isDeleted?: boolean;
+    appId?: string;
+    fcmToken?: string[];
     authentication?: IAuthenticationProps;
-    accountInformation?: IStripeAccountInfo;
+    accountInfo?: IAccountInfo;
 }
 
-export type UserModal = {
+export type TUserModal = {
     isExistUserById(id: string): any;
     isExistUserByEmail(email: string): any;
     isAccountCreated(id: string): any;

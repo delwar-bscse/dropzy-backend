@@ -4,6 +4,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { AuthService } from './auth.service';
 
+// verify email
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.verifyEmailToDB(req.body);
 
@@ -15,7 +16,7 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-
+// login user
 const loginUser = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.loginUserFromDB(req.body);
 
@@ -27,6 +28,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// forget password
 const forgetPassword = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.forgetPasswordToDB(req.body.email);
 
@@ -38,6 +40,7 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// reset password
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.resetPasswordToDB(req.headers.authorization!, req.body);
 
@@ -49,6 +52,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// change password
 const changePassword = catchAsync(async (req: Request, res: Response) => {
     await AuthService.changePasswordToDB(req.user, req.body);
 
@@ -59,7 +63,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-
+// new access token
 const newAccessToken = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.newAccessTokenToUser(req.body.refreshToken);
 
@@ -71,6 +75,7 @@ const newAccessToken = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// resend verification email
 const resendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.resendVerificationEmailToDB(req.body.email);
 
@@ -78,17 +83,6 @@ const resendVerificationEmail = catchAsync(async (req: Request, res: Response) =
         success: true,
         statusCode: StatusCodes.OK,
         message: 'Generate OTP and send successfully',
-        data: result
-    });
-});
-
-const socialLogin = catchAsync(async (req: Request, res: Response) => {
-    const result = await AuthService.socialLoginFromDB(req.body);
-
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Logged in Successfully',
         data: result
     });
 });
@@ -105,6 +99,18 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// swap user role
+const swapUserRole = catchAsync(async (req: Request, res: Response) => {
+    const result = await AuthService.swapUserRoleFromDB(req.user.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: `Your role swapped to ${result.role} successfully`,
+        data: result
+    });
+});
+
 export const AuthController = {
     verifyEmail,
     loginUser,
@@ -113,6 +119,6 @@ export const AuthController = {
     changePassword,
     newAccessToken,
     resendVerificationEmail,
-    socialLogin,
-    deleteUser
+    deleteUser,
+    swapUserRole
 };

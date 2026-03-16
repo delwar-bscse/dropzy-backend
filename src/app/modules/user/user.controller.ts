@@ -7,12 +7,13 @@ import { JwtPayload } from 'jsonwebtoken';
 
 // register user
 const createUser = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
-    await UserService.createUserToDB(req.body);
+    const result = await UserService.createUserToDB(req.body);
 
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'Your account has been successfully created. Verify Your Email By OTP. Check your email',
+        message: result.message,
+        data: result.data
     })
 });
 
@@ -36,7 +37,7 @@ const updateProfile = catchAsync( async (req: Request, res: Response, next: Next
         success: true,
         statusCode: StatusCodes.OK,
         message: 'Profile updated successfully',
-        data: result
+        data: result.data
     });
 });
 
