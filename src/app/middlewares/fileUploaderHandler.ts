@@ -8,6 +8,7 @@ import { profile } from 'console';
 
 const uploadDirectories: Record<string, string> = {
     image: 'image',
+    images: 'images',
     profile: 'profile',
     imgFront: 'imgFront',
     imgBack: 'imgBack',
@@ -64,6 +65,7 @@ const fileUploadHandler = () => {
     //allowed mime types
     const allowedMimeTypes: Record<string, string[]> = {
         image: ['image/jpeg', 'image/png', 'image/jpg'],
+        images: ['image/jpeg', 'image/png', 'image/jpg'],
         profile: ['image/jpeg', 'image/png', 'image/jpg'],
         imgFront: ['image/jpeg', 'image/png', 'image/jpg'],
         imgBack: ['image/jpeg', 'image/png', 'image/jpg'],
@@ -95,6 +97,7 @@ const fileUploadHandler = () => {
     const upload = multer({ storage: storage, fileFilter: filterFilter })
         .fields([
             { name: 'image', maxCount: 3 },
+            { name: 'images', maxCount: 4 },
             { name: 'profile', maxCount: 1 },
             { name: 'imgFront', maxCount: 1 },
             { name: 'imgBack', maxCount: 1 },

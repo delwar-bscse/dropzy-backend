@@ -8,4 +8,13 @@ const unlinkFile = (file: string) => {
     }
 };
 
-export default unlinkFile;
+const unlinkFiles = (files: string[]) => {
+  files.forEach((file) => {
+    const filePath = path.join('uploads', file);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  });
+};
+
+export { unlinkFile, unlinkFiles };

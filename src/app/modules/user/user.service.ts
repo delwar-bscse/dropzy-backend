@@ -6,7 +6,7 @@ import ApiError from "../../../errors/ApiErrors";
 import generateOTP from "../../../util/generateOTP";
 import { emailTemplate } from "../../../shared/emailTemplate";
 import { emailHelper } from "../../../helpers/emailHelper";
-import unlinkFile from "../../../shared/unlinkFile";
+import {unlinkFile} from "../../../shared/unlinkFile";
 import redis from "../../../config/redisClient";
 import { TrackService } from "../track/track.service";
 
@@ -97,14 +97,14 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
     }
 
     //unlink file here
-    if (payload.profile) {
-        console.log("Profile image : ", isExistUser.profile, payload.profile)
+    if (payload.profile && isExistUser.profile) {
+        // console.log("Profile image : ", isExistUser.profile, payload.profile)
         unlinkFile(isExistUser.profile);
     }
-    if (payload.imgFront) {
+    if (payload.imgFront && isExistUser.imgFront) {
         unlinkFile(isExistUser.imgFront);
     }
-    if (payload.imgBack) {
+    if (payload.imgBack && isExistUser.imgBack) {
         unlinkFile(isExistUser.imgBack);
     }
 
