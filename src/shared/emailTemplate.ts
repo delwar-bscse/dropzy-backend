@@ -1,4 +1,4 @@
-import { ICreateAccount, IResetPassword } from '../types/emailTemplate';
+import { IContactSupport, ICreateAccount, IResetPassword } from '../types/emailTemplate';
 
 const createAccount = (values: ICreateAccount) => {
     const data = {
@@ -35,7 +35,6 @@ const createAccount = (values: ICreateAccount) => {
 
     return data;
 }
-
 
 const resetPassword = (values: IResetPassword) => {
     const data = {
@@ -78,8 +77,24 @@ const resendOtp = (values: IResetPassword) => {
     return data;
 };
 
+const contactSupport = (values: IContactSupport) => {
+  const data = {
+    to: values.email,
+    subject: values.sub,
+    html:
+      `<body style="font-family: Arial, sans-serif; margin: 50px; padding: 20px; color: #555;">
+        <div style=" background-color: #fff;">
+            <p style="color: #555; font-size: 12px; line-height: 1.5; margin-bottom: 20px;">${values.msg}</p></br>
+            <p style="color: #555; font-size: 12px; line-height: 1.5; margin-bottom: 20px;"><b>Admin Reply : </b>${values.reply}</p>
+        </div>
+      </body>`,
+  };
+  return data;
+};
+
 export const emailTemplate = {
     createAccount,
     resetPassword,
-    resendOtp
+    resendOtp,
+    contactSupport
 };

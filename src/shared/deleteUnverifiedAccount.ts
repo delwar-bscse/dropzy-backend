@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { User } from "../app/modules/user/user.model";
+import { UserModel } from "../app/modules/user/user.model";
 import { logger } from "../shared/logger";
 
 export const deleteUnverifiedAccount = () => {
@@ -13,7 +13,7 @@ export const deleteUnverifiedAccount = () => {
             const cutoffDate = new Date(Date.now() - GRACE_PERIOD_MINUTES * 60 * 1000);
 
             // Delete unverified accounts older than the grace period
-            const result = await User.deleteMany({
+            const result = await UserModel.deleteMany({
                 verified: false,
                 createdAt: { $lt: cutoffDate }, // Only delete accounts created before the cutoff date
             });

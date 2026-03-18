@@ -1,6 +1,6 @@
 import path from 'path';
 import { optimizeImage } from '../util/imageOptimize';
-type IFolderName = 'image' | 'images' | 'proofImage' | 'media' | 'doc' | 'profile' | 'imgFront' | 'imgBack' | 'video' | 'pdf';
+type IFolderName = 'image' | 'images' | 'proofImage' | 'media' | 'doc' | 'profile' | 'imgFront' | 'imgBack' | 'video' | 'pdf' | 'attachment';
 
 // single file
 export const getSingleFilePath = async (files: any, folderName: IFolderName) => {
@@ -38,3 +38,24 @@ export const getMultipleFilesPath = async (files: any, folderName: IFolderName) 
 
     return undefined;
 };
+
+export const getSingleFilePathDocument = (files: any, folderName: IFolderName) => {
+  const fileField = files && files[folderName];
+  if (fileField && Array.isArray(fileField) && fileField.length > 0) {
+    return `/${folderName}/${fileField[0].filename}`;
+  }
+
+  return undefined;
+};
+
+//multiple files
+// export const getMultipleFilesPath = (files: any, folderName: IFolderName) => {
+//   const folderFiles = files && files[folderName];
+//   if (folderFiles) {
+//     if (Array.isArray(folderFiles)) {
+//       return folderFiles.map((file: any) => `/${folderName}/${file.filename}`);
+//     }
+//   }
+
+//   return undefined;
+// };

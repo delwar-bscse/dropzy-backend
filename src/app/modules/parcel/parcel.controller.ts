@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { ParcelService } from './parcel.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
+import { getSingleFilePath } from '../../../shared/getFilePath';
 
 // post parcel
 const createParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -29,16 +30,9 @@ const updateParcel = catchAsync(async (req: Request, res: Response, next: NextFu
     })
 });
 
-// register user
-const getParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    // console.log("Result : ", req.body)
-    const { p_lng, p_lat, d_lng, d_lat } = req.query
-    const filter = {
-        ...((p_lng && p_lat) && { p_lng: Number(p_lng), p_lat: Number(p_lat) }),
-        ...((d_lng && d_lat) && { d_lng: Number(d_lng), d_lat: Number(d_lat) })
-    };
-
-    const result = await ParcelService.getParcelsFromDB(filter);
+// update parcel
+const acceptParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ParcelService.acceptParcelToDB(req.user.id, req.params.id);
 
     sendResponse(res, {
         success: true,
@@ -48,8 +42,76 @@ const getParcels = catchAsync(async (req: Request, res: Response, next: NextFunc
     })
 });
 
+// update parcel
+const pickupParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ParcelService.pickupParcelToDB(req.user.id, req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: result.message,
+        data: result.data
+    })
+});
+
+// update parcel
+const leaveParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const proofImage = await getSingleFilePath(req.files, "proofImage");
+    const result = await ParcelService.leaveParcelToDB(req.user.id, req.params.id, { proofImage });
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: result.message,
+        data: result.data
+    })
+});
+
+// update parcel
+const acceptDelivery = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ParcelService.acceptDeliveryToDB(req.user.id, req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: result.message,
+        data: result.data
+    })
+});
+
+// get all parcels
+const getParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const result = await ParcelService.getParcelsFromDB(req.query);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: "Parcels data retrieved successfully",
+        data: result.data,
+        pagination: result.meta
+    })
+});
+
+// get single parcel
+const getParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await ParcelService.getParcelToDB(req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: "Parcel data retrieved successfully",
+        data: result.data
+    })
+});
+
 export const ParcelController = {
     createParcel,
     updateParcel,
-    getParcels
+    getParcels,
+    getParcel,
+    acceptParcel,
+    pickupParcel,
+    leaveParcel,
+    acceptDelivery    
 };

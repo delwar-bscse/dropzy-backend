@@ -5,7 +5,7 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import { USER_ROLES } from '../../../enums/user';
 import fileUploadHandler from '../../middlewares/fileUploaderHandler';
-import { getMultipleFilesPath } from '../../../shared/getFilePath';
+import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFilePath';
 const router = express.Router();
 
 router.route('/')
@@ -36,8 +36,16 @@ router.route('/')
         ParcelController.createParcel
     )
 
+router.patch('/accept-parcel/:id', auth(USER_ROLES.COURIER), ParcelController.acceptParcel);
+router.patch('/pickup-parcel/:id', auth(USER_ROLES.COURIER), ParcelController.pickupParcel);
+router.patch('/leave-parcel/:id', auth(USER_ROLES.COURIER), fileUploadHandler(), ParcelController.leaveParcel);
+router.patch('/accept-delivery/:id', auth(USER_ROLES.SENDER), ParcelController.acceptDelivery);
 
 router.route('/:id')
+    .get(
+        auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.COURIER, USER_ROLES.SENDER),
+        ParcelController.getParcel
+    )
     .patch(
         auth(USER_ROLES.SENDER),
         fileUploadHandler(),
@@ -97,7 +105,4 @@ export const ParcelRoutes = router;
     "\\images\\user-1773744534859.jpg"
   ]
 }
-
-
-
 */

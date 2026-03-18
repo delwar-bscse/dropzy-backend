@@ -1,52 +1,116 @@
-import mongoose from "mongoose";
-import { IReview } from "./review.interface";
-import { Review } from "./review.model";
-import { StatusCodes } from "http-status-codes";
-import { User } from "../user/user.model";
-import ApiError from "../../../errors/ApiErrors";
+import { StatusCodes } from 'http-status-codes';
+import { ReviewModel } from './review.model';
+import { IReview } from './review.interface';
+import { UserModel } from '../user/user.model';
+import ApiError from '../../../errors/ApiErrors';
+import { ParcelModel } from '../parcel/parcel.model';
+import { ParcelStatus } from '../../../enums/parcel';
+import { Types } from 'mongoose';
 
-const createReviewToDB = async(payload:IReview): Promise<IReview>=>{
 
+//create contact support
+const createReviewToDB = async (from: string, payload: Partial<IReview>): Promise<any> => {
 
-    // Fetch baber and check if it exists in one query
-    const user:any = await User.findById(payload.barber);
-    if (!user) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "No User Found");
-    }
+  const sender = await UserModel.findById(from);
+  if (!sender) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Sender doesn't exist!");
+  }
 
-    if (payload.rating) {
+  const parcel = await ParcelModel.findOne({
+    _id: payload.parcel,
+    sender: from,
+    status: ParcelStatus.DELIVERED
+  })
 
-        // checking the rating is valid or not;
-        const rating = Number(payload.rating);
-        if (rating < 1 || rating > 5) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid rating value");
-        }
+  if (!parcel) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Parcel doesn't exist!");
+  }
 
-        // Update service's rating and total ratings count
-        const ratingCount = user.ratingCount + 1;
+  const user = await UserModel.findById(parcel.courier);
+  if (!user) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Courier doesn't exist!");
+  }
 
-        let newRating;
-        if (user.rating === null || user.rating === 0) {
-            // If no previous ratings, the new rating is the first one
-            newRating = rating;
-        } else {
-            // Calculate the new rating based on previous ratings
-            newRating = ((user.rating * user.ratingCount) + rating) / ratingCount;
-        }
+  const isExistReview = await ReviewModel.findOne({ from: from, to: parcel.courier, parcel: payload.parcel });
+  if (isExistReview) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "You already reviewed to this courier!");
+  }
 
-        await User.findByIdAndUpdate(
-            {_id: payload.barber}, 
-            {rating: parseFloat(newRating.toFixed(2)) , ratingCount: ratingCount  }, 
-            {new: true}
-        )
-    }
+  const newReview = {
+    from: from,
+    to: parcel.courier,
+    parcel: payload.parcel,
+    rating: payload.rating,
+    comment: payload.comment,
+  }
 
-    const result = await Review.create(payload);
-    if(!result){
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed To create Review")
-    }
-    return payload;
+  const res = await ReviewModel.create(newReview);
+
+  if (!res) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Review to Provider failed!");
+  }
+
+  return { data: res };
 };
 
+//create contact support
+const getReviewFromDB = async (
+  id: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<any> => {
+  const skip = (page - 1) * limit;
 
-export const ReviewService ={ createReviewToDB}
+  const result = await ReviewModel.aggregate([
+    {
+      $match: {
+        to: new Types.ObjectId(id)
+      }
+    },
+    {
+      $facet: {
+        data: [
+          { $sort: { createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit }
+        ],
+        totalReview: [
+          { $count: "count" }
+        ],
+        averageRating: [
+          {
+            $group: {
+              _id: null,
+              avg: { $avg: "$rating" }
+            }
+          }
+        ]
+      }
+    }
+  ]);
+
+  const formatted = result[0];
+
+  const total = formatted.totalReview[0]?.count || 0;
+  const avg = formatted.averageRating[0]?.avg || 0;
+  const totalPage = Math.ceil(total / limit)
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage
+    },
+    data: {
+      reviews: formatted.data,
+      averageRating: avg,
+      totalReview: total
+    }
+  };
+};
+
+export const ReviewService = {
+  createReviewToDB,
+  getReviewFromDB
+};

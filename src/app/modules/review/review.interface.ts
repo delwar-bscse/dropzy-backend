@@ -1,11 +1,11 @@
-import { Model, Types } from "mongoose";
+import mongoose, { Model } from 'mongoose';
 
 export type IReview = {
-    _id?: Types.ObjectId;
-    user: Types.ObjectId;
-    service: Types.ObjectId;
-    comment: string;
-    rating: number;
-}
+  from:  mongoose.Types.ObjectId;
+  to:  mongoose.Types.ObjectId;
+  parcel: mongoose.Types.ObjectId;
+  rating: number;
+  comment: string;
+};
 
-export type ReviewModel = Model<IReview>;
+export type IReviewModal = Model<IReview>;
