@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import ApiError from "./errors/ApiErrors";
 // import handleStripeWebhook from "./stripe/handleStripeWebhook";
 const app = express();
+import "../src/helpers/cornJob"
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes

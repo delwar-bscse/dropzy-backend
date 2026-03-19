@@ -6,9 +6,10 @@ import ApiError from "../../../errors/ApiErrors";
 import generateOTP from "../../../util/generateOTP";
 import { emailTemplate } from "../../../shared/emailTemplate";
 import { emailHelper } from "../../../helpers/emailHelper";
-import {unlinkFile} from "../../../shared/unlinkFile";
+import { unlinkFile } from "../../../shared/unlinkFile";
 import redis from "../../../config/redisClient";
 import { TrackService } from "../track/track.service";
+import { logger } from "../../../shared/logger";
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
     let message = '';
@@ -125,7 +126,7 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
     if (!updateDoc) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update user');
     }
-    
+
     await redis.del(`user:${id}`);
 
     //create track room for tracking.
@@ -135,7 +136,7 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
         coordinates: updateDoc.coordinates
     });
 
-     if (!track) {
+    if (!track) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create track');
     }
     return {
@@ -143,8 +144,24 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
     };
 };
 
+// corn job: Delete unverified accounts older than the grace period
+const deleteUnverifiedAccount = async () => {
+    const GRACE_PERIOD_MINUTES = 1;
+    // Calculate the cutoff date (5 minutes ago)
+    const cutoffDate = new Date(Date.now() - GRACE_PERIOD_MINUTES * 60 * 1000);
+
+    // Delete unverified accounts older than the grace period
+    const result = await UserModel.deleteMany({
+        verified: false,
+        createdAt: { $lt: cutoffDate }
+    });
+
+    logger.info(`Deleted ${result.deletedCount} unverified accounts.`);
+};
+
 export const UserService = {
     createUserToDB,
     retrieveProfileFromDB,
-    updateProfileToDB
+    updateProfileToDB,
+    deleteUnverifiedAccount
 };
