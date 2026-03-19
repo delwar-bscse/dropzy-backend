@@ -47,6 +47,21 @@ const getContactSupport = catchAsync(
   }
 );
 
+// delete Contact Support
+const deleteContactSupport = catchAsync(
+  async (req: Request, res: Response) => {
+
+    const result = await ContactSupportService.deleteContactSupportFromDB(req.params.id);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Contact Support deleted successfully',
+      data: result,
+    });
+  }
+);
+
 // get Contact Support
 const getContactSupports = catchAsync(
   async (req: Request, res: Response) => {
@@ -65,4 +80,4 @@ const getContactSupports = catchAsync(
 );
 
 
-export const ContactSupportController = { createContactSupport, updateContactSupport, getContactSupport, getContactSupports };
+export const ContactSupportController = { createContactSupport, updateContactSupport, getContactSupport, getContactSupports, deleteContactSupport };

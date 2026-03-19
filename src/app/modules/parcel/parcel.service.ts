@@ -99,11 +99,13 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     const limit = Number(payload.limit) || 10;
     const skip = (page - 1) * limit;
     const radius = (Number(payload.radius) || 10) / 6378.1; //radius in radians;
-    const status = "posted";
+    const status = payload.status;
 
-    const match: any = {
-        status: status,
-    };
+    const match: any = {};
+
+    if (status) {
+        match.status = status;
+    }
 
     // pickup filter
     if (p_lng && p_lat) {
@@ -132,6 +134,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
         $facet: {
             data: [{ $skip: skip }, { $limit: limit }],
             total: [{ $count: "count" }],
+            analytics: [{ $group: { _id: "$status", count: { $sum: 1 } } }],
         },
     });
 
@@ -142,7 +145,10 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
 
     return {
         // data: parcels,
-        data: parcels[0].data,
+        data: {
+            parcels: parcels[0]?.data || [],
+            analytics: parcels[0]?.analytics
+        },
         meta: {
             total,
             page,

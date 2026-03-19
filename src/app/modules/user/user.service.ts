@@ -10,6 +10,9 @@ import { unlinkFile } from "../../../shared/unlinkFile";
 import redis from "../../../config/redisClient";
 import { TrackService } from "../track/track.service";
 import { logger } from "../../../shared/logger";
+import { FilterQuery } from "mongoose";
+import { USER_ROLES } from "../../../enums/user";
+import QueryBuilder from "../../../helpers/QueryBuilder";
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
     let message = '';
@@ -144,6 +147,77 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
     };
 };
 
+const getAllUsersFromDB = async (query: FilterQuery<IUser>): Promise<any> => {
+
+    const builder = new QueryBuilder<IUser>(UserModel.find(), query);
+
+    const usersQuery = builder
+        .search(['name', 'email', 'phoneNumber', 'address'])
+        .filter()
+        .sort(['-createdAt'])
+        .paginate()
+        .fields();
+
+    const [data, meta] = await Promise.all([
+        usersQuery.modelQuery.lean().exec(),
+        builder.getPaginationInfo()
+    ]);
+
+    return { data, meta };
+};
+
+const deleteUserFromDB = async (userId: string): Promise<any> => {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    }
+
+    user.isDeleted = true;
+    await user.save();
+
+    return user;
+};
+
+const approveUserToDB = async (userId: string): Promise<any> => {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    }
+
+    user.approved = true;
+    await user.save();
+
+    return user;
+};
+
+const declineUserFromDB = async (userId: string): Promise<any> => {
+    const user = await UserModel.findByIdAndDelete(userId);
+
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    }
+
+    return user;
+};
+
+const activeBlockUserFromDB = async (userId: string): Promise<any> => {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    }
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    return {
+        data: user,
+        message: user.isActive ? 'User activated successfully' : 'User blocked successfully'
+    };
+};
+
 // corn job: Delete unverified accounts older than the grace period
 const deleteUnverifiedAccount = async () => {
     const GRACE_PERIOD_MINUTES = 1;
@@ -163,5 +237,10 @@ export const UserService = {
     createUserToDB,
     retrieveProfileFromDB,
     updateProfileToDB,
-    deleteUnverifiedAccount
+    deleteUnverifiedAccount,
+    getAllUsersFromDB,
+    deleteUserFromDB,
+    activeBlockUserFromDB,
+    approveUserToDB,
+    declineUserFromDB
 };

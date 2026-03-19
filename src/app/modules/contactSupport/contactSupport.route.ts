@@ -49,6 +49,10 @@ router
     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
     validateRequest(ContactSupportValidation.updateContactSupportZodSchema),
     ContactSupportController.updateContactSupport
+  )
+  .delete(
+    auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+    ContactSupportController.deleteContactSupport
   );
 
 

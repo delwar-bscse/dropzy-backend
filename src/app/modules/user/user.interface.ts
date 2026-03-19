@@ -39,7 +39,8 @@ export type IUser = {
     landRegion?: string;
     city?: string;
     zipCode?: string;
-    verified?: boolean;     
+    verified?: boolean;
+    approved?: boolean;     
     isActive?: boolean;
     isDeleted?: boolean;
     appId?: string;

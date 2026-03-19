@@ -77,6 +77,10 @@ const userSchema = new Schema<IUser, TUserModal>(
             type: Boolean,
             default: false,
         },
+        approved: {
+            type: Boolean,
+            default: false,
+        },
         isActive: {
             type: Boolean,
             default: true,

@@ -5,6 +5,7 @@ import { TrackRoutes } from '../modules/track/track.routes';
 import { ParcelRoutes } from '../modules/parcel/parcel.routes';
 import { ReviewRoutes } from '../modules/review/review.route';
 import { ContactSupportRoutes } from '../modules/contactSupport/contactSupport.route';
+import { RuleRoutes } from '../modules/rule/rule.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -14,6 +15,7 @@ const apiRoutes = [
     { path: "/parcel", route: ParcelRoutes },
     { path: "/review", route: ReviewRoutes },
     { path: "/support", route: ContactSupportRoutes },
+    { path: "/rule", route: RuleRoutes },
 ]
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

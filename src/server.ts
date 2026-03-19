@@ -7,6 +7,7 @@ import { socketHelper } from "./helpers/socketHelper";
 import { Server } from "socket.io";
 import seedSuperAdmin from "./DB";
 import { connectRedis } from "./config/redisClient";
+import { RuleService } from "./app/modules/rule/rule.service";
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -20,11 +21,9 @@ let server: any;
 async function main() {
     try {
 
-        // create super admin
-        seedSuperAdmin();
-
-        //connect redis
-        connectRedis();
+        connectRedis();         //connect redis
+        seedSuperAdmin();       // create super admin
+        RuleService.addRuleToDB();  // add default rules
 
         mongoose.connect(config.database_url as string);
         logger.info(colors.green('🚀 Database connected successfully'));

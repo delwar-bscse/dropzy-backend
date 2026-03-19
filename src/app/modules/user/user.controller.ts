@@ -4,9 +4,10 @@ import { UserService } from './user.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { JwtPayload } from 'jsonwebtoken';
+import pick from '../../../helpers/pick';
 
 // register user
-const createUser = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
+const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.createUserToDB(req.body);
 
     sendResponse(res, {
@@ -29,8 +30,86 @@ const retrieveProfile = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// retrieved user profile
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+    // 1. Define which query fields are filters
+    const acceptableFields = ['searchTerm', 'verified', 'isActive', 'isDeleted', 'fields', 'sort', 'role', 'page', 'limit'];
+    // 2. Pick only allowed filters from req.query
+    const filterOptions = pick(req.query, acceptableFields);
+
+    const result = await UserService.getAllUsersFromDB(filterOptions);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'Users data retrieved successfully',
+        data: result.data,
+        pagination: result.meta
+    });
+});
+
+// delete profile
+const deleteProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserService.deleteUserFromDB(req.user.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'Profile deleted successfully',
+        data: result
+    });
+});
+
+// delete user
+const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserService.deleteUserFromDB(req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'User deleted successfully',
+        data: result
+    });
+});
+
+// Declined user
+const approveUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserService.approveUserToDB(req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'User deleted successfully',
+        data: result
+    });
+});
+
+// Declined user
+const declineUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserService.declineUserFromDB(req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'User deleted successfully',
+        data: result
+    });
+});
+
+// delete user
+const activeBlockUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await UserService.activeBlockUserFromDB(req.params.id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: result.message,
+        data: result.data
+    });
+});
+
 //update profile
-const updateProfile = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
+const updateProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.updateProfileToDB(req.user as JwtPayload, req.body);
 
     sendResponse(res, {
@@ -41,8 +120,14 @@ const updateProfile = catchAsync( async (req: Request, res: Response, next: Next
     });
 });
 
-export const UserController = { 
+export const UserController = {
     createUser,
-    retrieveProfile, 
-    updateProfile
+    retrieveProfile,
+    getAllUsers,
+    updateProfile,
+    deleteProfile,
+    deleteUser,
+    activeBlockUser,
+    approveUser,
+    declineUser
 };

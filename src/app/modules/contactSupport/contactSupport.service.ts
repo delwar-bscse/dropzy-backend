@@ -77,6 +77,15 @@ const getContactSupportToDB = async (id: string): Promise<any> => {
   return res;
 }
 
+// get contact support
+const deleteContactSupportFromDB = async (id: string): Promise<any> => {
+  const res = await ContactSupportModel.findByIdAndDelete(id);
+  if (!res) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Contact Support doesn't exist!");
+  }
+  return res;
+}
+
 // get contact support with pagination
 const getContactSupportsToDB = async (
   limit: number,
@@ -164,5 +173,6 @@ export const ContactSupportService = {
   createContactSupportToDB,
   updateContactSupportToDB,
   getContactSupportToDB,
-  getContactSupportsToDB
+  getContactSupportsToDB,
+  deleteContactSupportFromDB
 };
