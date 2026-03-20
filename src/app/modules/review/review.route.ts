@@ -9,12 +9,12 @@ const router = express.Router();
 router
   .route('/')
   .post(
-    auth(USER_ROLES.SENDER),
+    auth(USER_ROLES.SENDER, USER_ROLES.COURIER),
     validateRequest(ReviewValidation.reviewZodSchema),
     ReviewController.createReview
   )
   .get(
-    auth(USER_ROLES.COURIER),
+    auth(USER_ROLES.SENDER, USER_ROLES.COURIER),
     ReviewController.getMyReviews
   );
 

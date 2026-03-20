@@ -39,6 +39,10 @@ export type IUser = {
     landRegion?: string;
     city?: string;
     zipCode?: string;
+    c_rides?: number;
+    c_rating?: number;
+    s_rides?: number;
+    s_rating?: number;
     verified?: boolean;
     approved?: boolean;     
     isActive?: boolean;

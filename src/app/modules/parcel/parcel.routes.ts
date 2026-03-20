@@ -5,7 +5,7 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import { USER_ROLES } from '../../../enums/user';
 import fileUploadHandler from '../../middlewares/fileUploaderHandler';
-import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFilePath';
+import { getMultipleFilesPath } from '../../../shared/getFilePath';
 const router = express.Router();
 
 router.route('/')
@@ -40,6 +40,9 @@ router.patch('/accept-parcel/:id', auth(USER_ROLES.COURIER), ParcelController.ac
 router.patch('/pickup-parcel/:id', auth(USER_ROLES.COURIER), ParcelController.pickupParcel);
 router.patch('/leave-parcel/:id', auth(USER_ROLES.COURIER), fileUploadHandler(), ParcelController.leaveParcel);
 router.patch('/accept-delivery/:id', auth(USER_ROLES.SENDER), ParcelController.acceptDelivery);
+router.get('/get-all-parcels-for-admin', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), ParcelController.getParcelsForAdmin);
+router.get('/parcels-overview-for-admin', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), ParcelController.parcelsOverview);
+router.get('/my-parcels', auth(USER_ROLES.SENDER, USER_ROLES.COURIER), ParcelController.getMyParcels);
 
 router.route('/:id')
     .get(

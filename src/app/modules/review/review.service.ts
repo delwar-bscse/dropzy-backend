@@ -5,52 +5,74 @@ import { UserModel } from '../user/user.model';
 import ApiError from '../../../errors/ApiErrors';
 import { ParcelModel } from '../parcel/parcel.model';
 import { ParcelStatus } from '../../../enums/parcel';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
+import { USER_ROLES } from '../../../enums/user';
 
 
 //create contact support
-const createReviewToDB = async (from: string, payload: Partial<IReview>): Promise<any> => {
+const createReviewToDB = async (from: string, payload: any): Promise<any> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const sender = await UserModel.findById(from);
-  if (!sender) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Sender doesn't exist!");
+  try {
+    const reviewFrom = await UserModel.findById(from).session(session);
+    if (!reviewFrom) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Review sender doesn't exist!");
+    }
+
+    const reviewTo = await UserModel.findById(payload.to).session(session);
+    if (!reviewTo) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Review receiver doesn't exist!");
+    }
+
+    const parcel = await ParcelModel.findOne({
+      _id: payload.parcel,
+      status: ParcelStatus.DELIVERED
+    }).session(session);
+
+    if (!parcel) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Parcel doesn't exist or not delivered!");
+    }
+
+    const isExistReview = await ReviewModel.findOne({
+      parcel: payload.parcel,
+      from: reviewFrom._id,
+      to: reviewTo._id
+    }).session(session);
+
+    if (isExistReview) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Review already exists for this parcel!");
+    }
+
+    const [newReview] = await ReviewModel.create([{
+      from: reviewFrom._id,
+      to: reviewTo._id,
+      parcel: parcel._id,
+      rating: payload.rating,
+      comment: payload.comment,
+    }], { session });
+
+    const updateField =
+      payload.sender_role === USER_ROLES.SENDER
+        ? { c_rides: 1, c_rating: Number(payload.rating) }
+        : { s_rides: 1, s_rating: Number(payload.rating) };
+
+    await UserModel.findByIdAndUpdate(
+      payload.to,
+      { $inc: updateField },
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    return { data: newReview };
+
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-
-  const parcel = await ParcelModel.findOne({
-    _id: payload.parcel,
-    sender: from,
-    status: ParcelStatus.DELIVERED
-  })
-
-  if (!parcel) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Parcel doesn't exist!");
-  }
-
-  const user = await UserModel.findById(parcel.courier);
-  if (!user) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Courier doesn't exist!");
-  }
-
-  const isExistReview = await ReviewModel.findOne({ from: from, to: parcel.courier, parcel: payload.parcel });
-  if (isExistReview) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "You already reviewed to this courier!");
-  }
-
-  const newReview = {
-    from: from,
-    to: parcel.courier,
-    parcel: payload.parcel,
-    rating: payload.rating,
-    comment: payload.comment,
-  }
-
-  const res = await ReviewModel.create(newReview);
-
-  if (!res) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Review to Provider failed!");
-  }
-
-  return { data: res };
 };
 
 //create contact support

@@ -6,6 +6,8 @@ import { unlinkFile, unlinkFiles } from "../../../shared/unlinkFile";
 import { UserModel } from "../user/user.model";
 import { USER_ROLES } from "../../../enums/user";
 import { ParcelStatus } from "../../../enums/parcel";
+import QueryBuilder from "../../../helpers/QueryBuilder";
+import { FilterQuery } from "mongoose";
 
 // create parcel to db
 const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Promise<any> => {
@@ -93,6 +95,44 @@ const updateParcelToDB = async (senderId: string, parcelId: string, payload: any
 };
 
 // get all parcels from db
+const parcelsOverviewFromDB = async (): Promise<any> => {
+
+    const data = await ParcelModel.aggregate([
+        {
+            $facet: {
+                totalParcels: [
+                    { $count: "count" }
+                ],
+                postedParcels: [
+                    { $match: { status: ParcelStatus.POSTED } },
+                    { $count: "count" }
+                ],
+                acceptedParcels: [
+                    { $match: { status: ParcelStatus.ACCEPTED } },
+                    { $count: "count" }
+                ],
+                onTheWayParcels: [
+                    { $match: { status: ParcelStatus.ONTHEWAY } },
+                    { $count: "count" }
+                ],
+                deliveredParcels: [
+                    { $match: { status: ParcelStatus.DELIVERED } },
+                    { $count: "count" }
+                ]
+            }
+        }
+    ]);
+
+    return {
+        totalParcels: data[0]?.totalParcels[0]?.count || 0,
+        postedParcels: data[0]?.postedParcels[0]?.count || 0,
+        acceptedParcels: data[0]?.acceptedParcels[0]?.count || 0,
+        onTheWayParcels: data[0]?.onTheWayParcels[0]?.count || 0,
+        deliveredParcels: data[0]?.deliveredParcels[0]?.count || 0
+    };
+};
+
+// get all parcels from db
 const getParcelsFromDB = async (payload: any): Promise<any> => {
     const { p_lng, p_lat, d_lng, d_lat } = payload;
     const page = Number(payload.page) || 1;
@@ -127,14 +167,63 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
 
     const pipeline: any[] = [
         { $match: match },
-        { $sort: { createdAt: -1 } }
+        { $sort: { createdAt: -1 } },
+        {
+            $lookup: {
+                from: "users",
+                localField: "sender",
+                foreignField: "_id",
+                as: "sender",
+                pipeline: [
+                    {
+                        $project: {
+                            name: 1,
+                            email: 1,
+                            contact: 1,
+                            s_rides: 1,
+                            s_rating: 1
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $unwind: { path: "$sender", preserveNullAndEmptyArrays: true },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "courier",
+                foreignField: "_id",
+                as: "courier",
+                pipeline: [
+                    {
+                        $project: {
+                            name: 1,
+                            email: 1,
+                            contact: 1,
+                            c_rides: 1,
+                            c_rating: 1
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $unwind: { path: "$courier", preserveNullAndEmptyArrays: true },
+        },
+        {
+            $project: {
+                sendDeliveryRequest: 0,
+                track_date: 0,
+            }
+        }
     ];
 
     pipeline.push({
         $facet: {
             data: [{ $skip: skip }, { $limit: limit }],
             total: [{ $count: "count" }],
-            analytics: [{ $group: { _id: "$status", count: { $sum: 1 } } }],
         },
     });
 
@@ -144,11 +233,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     const totalPage = Math.ceil(total / limit);
 
     return {
-        // data: parcels,
-        data: {
-            parcels: parcels[0]?.data || [],
-            analytics: parcels[0]?.analytics
-        },
+        data: parcels[0]?.data || [],
         meta: {
             total,
             page,
@@ -156,6 +241,59 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
             totalPage,
         },
     };
+};
+
+// get all parcels from db for admin
+const getMyParcelsFromDB = async (
+    user: any,
+    query: FilterQuery<IParcel>
+): Promise<any> => {
+
+    const baseQuery =
+        user.role === USER_ROLES.SENDER
+            ? { sender: user.id }
+            : { courier: user.id };
+    // console.log("base query : ", baseQuery)
+
+    const builder = new QueryBuilder<IParcel>(
+        ParcelModel.find(baseQuery),
+        query
+    );
+
+    const usersQuery = builder
+        .search(['pickup', 'destination', 'note',])
+        .filter()
+        .sort(['-createdAt'])
+        .paginate()
+        .fields();
+
+    const [data, meta] = await Promise.all([
+        usersQuery.modelQuery.lean().exec(),
+        builder.getPaginationInfo(),
+    ]);
+
+    return { data, meta };
+};
+
+// get all parcels from db for admin
+const getParcelsForAdminFromDB = async (query: FilterQuery<IParcel>): Promise<any> => {
+
+    const builder = new QueryBuilder<IParcel>(ParcelModel.find({}), query);
+
+    const usersQuery = builder
+        .search(['pickup', 'destination', 'note'])
+        .filter()
+        .sort(['-createdAt'])
+        .paginate()
+        .fields()
+        .populate(['sender', 'courier'], { sender: 'name email', courier: 'name email' })
+
+    const [data, meta] = await Promise.all([
+        usersQuery.modelQuery.lean().exec(),
+        builder.getPaginationInfo()
+    ]);
+
+    return { data, meta };
 };
 
 // get parcel from db
@@ -278,5 +416,8 @@ export const ParcelService = {
     acceptParcelToDB,
     pickupParcelToDB,
     leaveParcelToDB,
-    acceptDeliveryToDB
+    acceptDeliveryToDB,
+    getParcelsForAdminFromDB,
+    parcelsOverviewFromDB,
+    getMyParcelsFromDB
 };

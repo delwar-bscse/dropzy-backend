@@ -73,6 +73,22 @@ const userSchema = new Schema<IUser, TUserModal>(
             type: String,
             required: false,
         },
+        s_rides: {
+            type: Number,
+            default: 0,
+        },
+        s_rating: {
+            type: Number,
+            default: 0,
+        },
+        c_rides: {
+            type: Number,
+            default: 0,
+        },
+        c_rating: {
+            type: Number,
+            default: 0,
+        },
         verified: {
             type: Boolean,
             default: false,

@@ -8,6 +8,7 @@ import { Server } from "socket.io";
 import seedSuperAdmin from "./DB";
 import { connectRedis } from "./config/redisClient";
 import { RuleService } from "./app/modules/rule/rule.service";
+import { PriceService } from "./app/modules/price/price.service";
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -23,7 +24,8 @@ async function main() {
 
         connectRedis();         //connect redis
         seedSuperAdmin();       // create super admin
-        RuleService.addRuleToDB();  // add default rules
+        RuleService.addRuleToDB();      // add default rules
+        PriceService.addPriceToDB();    // add default price
 
         mongoose.connect(config.database_url as string);
         logger.info(colors.green('🚀 Database connected successfully'));
