@@ -3,3 +3,4 @@ uploads
 /winston
 .env
 src/firebaseSDK.json
+dist
