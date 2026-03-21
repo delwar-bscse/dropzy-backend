@@ -13,6 +13,10 @@ const userSchema = new Schema<IUser, TUserModal>(
             enum: Object.values(USER_ROLES),
             required: true,
         },
+        balance: {
+            type: Number,
+            default: 0,
+        },
         name: {
             type: String,
             required: false,

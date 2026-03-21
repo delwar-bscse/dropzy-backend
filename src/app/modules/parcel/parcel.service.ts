@@ -8,6 +8,7 @@ import { USER_ROLES } from "../../../enums/user";
 import { ParcelStatus } from "../../../enums/parcel";
 import QueryBuilder from "../../../helpers/QueryBuilder";
 import { FilterQuery } from "mongoose";
+import { generateTrackingId } from "../../../helpers/generateTrackingId";
 
 // create parcel to db
 const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Promise<any> => {
@@ -19,8 +20,10 @@ const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Pr
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Sender not found');
         }
 
+        const trackId = await generateTrackingId();
         const newPayload = {
             ...payload,
+            trackId,
             sender: senderId,
             postedDate: postedDate,
             status: ParcelStatus.POSTED,
@@ -146,6 +149,9 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     if (status) {
         match.status = status;
     }
+    if (payload.trackId) {
+        match.trackId = { $regex: payload.trackId };
+    }
 
     // pickup filter
     if (p_lng && p_lat) {
@@ -261,7 +267,7 @@ const getMyParcelsFromDB = async (
     );
 
     const usersQuery = builder
-        .search(['pickup', 'destination', 'note',])
+        .search(['trackId', 'pickup', 'destination', 'note',])
         .filter()
         .sort(['-createdAt'])
         .paginate()

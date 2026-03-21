@@ -21,6 +21,7 @@ interface ICoordinates {
 
 export interface IParcel {
     _id?: Types.ObjectId;
+    trackId: string;
     sender: Types.ObjectId;
     courier?: Types.ObjectId;
     receiver: IReceiver;

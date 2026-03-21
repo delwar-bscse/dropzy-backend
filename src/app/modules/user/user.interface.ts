@@ -25,6 +25,7 @@ interface IAuthenticationProps {
 export type IUser = {
     _id?: Types.ObjectId;
     role: USER_ROLES;
+    balance?: number;
     name: string;
     email: string;
     password: string;

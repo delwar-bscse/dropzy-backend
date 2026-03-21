@@ -19,6 +19,7 @@ const TrackDateSchema = new Schema<ITrackDate>({
 // --- Main Schema ---
 const ParcelSchema = new Schema<IParcel, TParcelModal>(
   {
+    trackId: { type: String, required: true },
     sender: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -106,5 +107,6 @@ ParcelSchema.statics.isExistParcelById = async function (id: string) {
 
 ParcelSchema.index({ p_coordinates: "2dsphere" });
 ParcelSchema.index({ d_coordinates: "2dsphere" });
+ParcelSchema.index({ track_date: "2dsphere" });
 
 export const ParcelModel = model<IParcel, TParcelModal>('Parcel', ParcelSchema);
