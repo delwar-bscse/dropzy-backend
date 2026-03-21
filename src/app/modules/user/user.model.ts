@@ -173,12 +173,6 @@ const userSchema = new Schema<IUser, TUserModal>(
     }
 );
 
-// userSchema.post("findOne", function (user: IUser) {
-//     if (user && user?.profile && !user?.profile.startsWith('http')) {
-//         user.profile = `http://${config.ip_address}:${config.port}${user.profile}`;
-//     }
-// })
-
 //exist user check
 userSchema.statics.isExistUserById = async (id: string) => {
     const isExist = await UserModel.findById(id);
@@ -211,12 +205,6 @@ userSchema.pre('save', async function (next) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
         }
     }
-
-    // if (this.role === USER_ROLES.SENDER) {
-    //     this.accountInfo = {
-    //         status: false
-    //     };
-    // }
 
     //password hash
     if (this.password) {

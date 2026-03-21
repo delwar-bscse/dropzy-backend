@@ -5,6 +5,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
+// add price
 const addPrice = catchAsync(async (req, res) => {
 
   const result = await PriceService.addPriceToDB();
@@ -17,6 +18,7 @@ const addPrice = catchAsync(async (req, res) => {
   });
 });
 
+// get price
 const getPrice = catchAsync(async (req: Request, res: Response): Promise<void> => {
   
   const result = await PriceService.getPriceFromDB()
@@ -29,7 +31,7 @@ const getPrice = catchAsync(async (req: Request, res: Response): Promise<void> =
 },
 );
 
-
+// update price
 const updatePrice = catchAsync(async (req, res) => {
 
   const result = await PriceService.updatePriceToDB(req.body);
@@ -41,7 +43,7 @@ const updatePrice = catchAsync(async (req, res) => {
   });
 });
 
-
+// calculate price
 const calculatePrice = catchAsync(async (req, res) => {
 
   const payload = {

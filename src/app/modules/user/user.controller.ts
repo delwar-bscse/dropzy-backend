@@ -18,7 +18,7 @@ const createUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     })
 });
 
-// retrieved user profile
+// retrieve profile
 const retrieveProfile = catchAsync(async (req: Request, res: Response) => {
     const result = await UserService.retrieveProfileFromDB(req.user as JwtPayload,);
 
@@ -30,7 +30,7 @@ const retrieveProfile = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// retrieved user profile
+// get all users
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     // 1. Define which query fields are filters
     const acceptableFields = ['searchTerm', 'verified', 'isActive', 'isDeleted', 'fields', 'sort', 'role', 'page', 'limit'];
@@ -48,7 +48,7 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// delete profile
+// delete my profile
 const deleteProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.deleteUserFromDB(req.user.id);
 
@@ -60,7 +60,7 @@ const deleteProfile = catchAsync(async (req: Request, res: Response, next: NextF
     });
 });
 
-// delete user
+// admin: delete user
 const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.deleteUserFromDB(req.params.id);
 
@@ -72,7 +72,7 @@ const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     });
 });
 
-// Declined user
+// approve user
 const approveUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.approveUserToDB(req.params.id);
 
@@ -84,7 +84,7 @@ const approveUser = catchAsync(async (req: Request, res: Response, next: NextFun
     });
 });
 
-// Declined user
+// Decline user
 const declineUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.declineUserFromDB(req.params.id);
 
@@ -96,7 +96,7 @@ const declineUser = catchAsync(async (req: Request, res: Response, next: NextFun
     });
 });
 
-// delete user
+// active or block user
 const activeBlockUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserService.activeBlockUserFromDB(req.params.id);
 

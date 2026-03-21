@@ -14,6 +14,7 @@ import { FilterQuery } from "mongoose";
 import { USER_ROLES } from "../../../enums/user";
 import QueryBuilder from "../../../helpers/QueryBuilder";
 
+// create user to DB
 const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
     let message = '';
     let createUser: IUser = {} as IUser;
@@ -74,6 +75,7 @@ const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
     };
 };
 
+// retrieve profile
 const retrieveProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> => {
     const { id } = user;
 
@@ -93,6 +95,7 @@ const retrieveProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> 
     return isExistUser;
 };
 
+// update profile
 const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Promise<{ data: Partial<IUser | null> }> => {
     const { id } = user;
     const isExistUser = await UserModel.isExistUserById(id);
@@ -147,6 +150,7 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
     };
 };
 
+// get all users
 const getAllUsersFromDB = async (query: FilterQuery<IUser>): Promise<any> => {
 
     const builder = new QueryBuilder<IUser>(UserModel.find(), query);
@@ -166,6 +170,7 @@ const getAllUsersFromDB = async (query: FilterQuery<IUser>): Promise<any> => {
     return { data, meta };
 };
 
+// soft delete user
 const deleteUserFromDB = async (userId: string): Promise<any> => {
     const user = await UserModel.findById(userId);
 
@@ -179,6 +184,7 @@ const deleteUserFromDB = async (userId: string): Promise<any> => {
     return user;
 };
 
+// approve user
 const approveUserToDB = async (userId: string): Promise<any> => {
     const user = await UserModel.findById(userId);
 
@@ -192,6 +198,7 @@ const approveUserToDB = async (userId: string): Promise<any> => {
     return user;
 };
 
+// decline user
 const declineUserFromDB = async (userId: string): Promise<any> => {
     const user = await UserModel.findByIdAndDelete(userId);
 
@@ -202,6 +209,7 @@ const declineUserFromDB = async (userId: string): Promise<any> => {
     return user;
 };
 
+// active or block user
 const activeBlockUserFromDB = async (userId: string): Promise<any> => {
     const user = await UserModel.findById(userId);
 

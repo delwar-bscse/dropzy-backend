@@ -2,7 +2,7 @@ import mongoose, { Model } from 'mongoose';
 
 export type IContactSupport = {
   user:  mongoose.Types.ObjectId;
-  attachment: string;
+  attachment?: string;
   sub: string;
   msg: string;
   reply: string;

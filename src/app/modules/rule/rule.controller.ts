@@ -5,6 +5,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
+// add rule
 const addRule = catchAsync(async (req, res) => {
 
   const result = await RuleService.addRuleToDB();
@@ -17,6 +18,7 @@ const addRule = catchAsync(async (req, res) => {
   });
 });
 
+// get rule
 const getRule = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const { title } = req.params;
   const result = await RuleService.getRuleFromDB(title)
@@ -29,7 +31,7 @@ const getRule = catchAsync(async (req: Request, res: Response): Promise<void> =>
 },
 );
 
-
+// update rule
 const updateRule = catchAsync(async (req, res) => {
   
   const result = await RuleService.updateRuleToDB(req.body);

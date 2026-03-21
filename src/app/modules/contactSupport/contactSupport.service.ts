@@ -8,18 +8,18 @@ import ApiError from '../../../errors/ApiErrors';
 import { unlinkFile } from '../../../shared/unlinkFile';
 
 
-//create contact support
+//create contact & support
 const createContactSupportToDB = async (userId: string, payload: Partial<IContactSupport>): Promise<any> => {
 
   try {
     const isExistContactSupport = await ContactSupportModel.findOne({ user: new Types.ObjectId(userId), isReply: false });
     if (isExistContactSupport) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Your already have pending contact support! Please wait for admin response to you mail!");
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Your already have pending contact & support! Please wait for admin response to you mail!");
     }
 
     const newContactSupport = {
       user: new Types.ObjectId(userId),
-      attachment: payload.attachment,
+      ...(payload.attachment && { attachment: payload.attachment }),
       sub: payload.sub,
       msg: payload.msg,
     }
@@ -36,7 +36,7 @@ const createContactSupportToDB = async (userId: string, payload: Partial<IContac
   }
 };
 
-// update contact support
+// update contact & support
 const updateContactSupportToDB = async (id: string, reply: string): Promise<any> => {
 
   const res = await ContactSupportModel.findById(id).populate('user', 'email');
@@ -68,7 +68,7 @@ const updateContactSupportToDB = async (id: string, reply: string): Promise<any>
   return res;
 };
 
-// get contact support
+// get contact & support
 const getContactSupportToDB = async (id: string): Promise<any> => {
   const res = await ContactSupportModel.findById(id).populate('user', 'name email contact location');
   if (!res) {
@@ -77,7 +77,7 @@ const getContactSupportToDB = async (id: string): Promise<any> => {
   return res;
 }
 
-// get contact support
+// get contact & support
 const deleteContactSupportFromDB = async (id: string): Promise<any> => {
   const res = await ContactSupportModel.findByIdAndDelete(id);
   if (!res) {
@@ -86,7 +86,7 @@ const deleteContactSupportFromDB = async (id: string): Promise<any> => {
   return res;
 }
 
-// get contact support with pagination
+// get contact & support with pagination
 const getContactSupportsToDB = async (
   limit: number,
   pageNumber: number,

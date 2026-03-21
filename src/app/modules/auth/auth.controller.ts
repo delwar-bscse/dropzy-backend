@@ -75,7 +75,7 @@ const newAccessToken = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// resend verification email
+// resend otp to email
 const resendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.resendVerificationEmailToDB(req.body.email);
 
@@ -87,7 +87,7 @@ const resendVerificationEmail = catchAsync(async (req: Request, res: Response) =
     });
 });
 
-// delete user
+// soft delete user
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.deleteUserFromDB(req.user, req.body.password);
 

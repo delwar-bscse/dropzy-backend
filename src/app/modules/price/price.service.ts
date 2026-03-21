@@ -4,7 +4,7 @@ import colors from 'colors';
 import ApiError from '../../../errors/ApiErrors';
 import { IPrice } from './price.interface';
 
-// Function to add rule
+// System: Function to add rule
 const addPriceToDB = async (): Promise<void> => {
 
   const data = {
@@ -28,7 +28,8 @@ const addPriceToDB = async (): Promise<void> => {
     }
   }
 };
-// Function to add rule
+
+// calculate price
 const calculatePriceFromDB = async ({ weight, dimension }: { weight: number; dimension: number }): Promise<any> => {
   const isExistPrice = await PriceModel.findOne({}).lean();
   if (!isExistPrice) {
@@ -65,7 +66,7 @@ const calculatePriceFromDB = async ({ weight, dimension }: { weight: number; dim
   };
 };
 
-// Function to get rule
+// get price
 const getPriceFromDB = async (): Promise<Partial<IPrice>> => {
   const price = await PriceModel.findOne({}).lean();
 
@@ -76,7 +77,7 @@ const getPriceFromDB = async (): Promise<Partial<IPrice>> => {
   return price;
 };
 
-// Function to update rule
+// update price
 const updatePriceToDB = async (payload: Partial<IPrice>): Promise<string> => {
 
   await PriceModel.findOneAndUpdate({}, payload).lean();

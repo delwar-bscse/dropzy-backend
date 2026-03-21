@@ -3,6 +3,7 @@ import { TrackModel } from './track.model';
 import ApiError from '../../../errors/ApiErrors';
 import { StatusCodes } from 'http-status-codes';
 
+// Create Track to DB
 const createTrackToDB = async (payload: any): Promise<ITrack> => {
     const isExistTrack: ITrack | null = await TrackModel.findOne({
         courier: payload.courier,
@@ -20,6 +21,7 @@ const createTrackToDB = async (payload: any): Promise<ITrack> => {
     return track;
 }
 
+// Update Track to DB
 const updateTrackToDB = async ({ id, payload }: { id: string, payload: any }): Promise<any> => {
     const track = await TrackModel.findOneAndUpdate({ courier: id }, payload, { new: true }).lean();
 
@@ -35,6 +37,7 @@ const updateTrackToDB = async ({ id, payload }: { id: string, payload: any }): P
     return track;
 }
 
+// Retrieve Track to DB
 const retrievedTrackToDB = async (payload: any): Promise<ITrack> => {
     const isExistTrack: ITrack | null = await TrackModel.findOne({
         courier: payload.courier,

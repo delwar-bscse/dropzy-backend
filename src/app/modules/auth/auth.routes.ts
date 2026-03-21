@@ -34,7 +34,7 @@ router.post(
         try {
             const { email, oneTimeCode } = req.body;
 
-            req.body = { email, oneTimeCode: Number(oneTimeCode)};
+            req.body = { email, oneTimeCode: Number(oneTimeCode) };
             next();
 
         } catch (error) {

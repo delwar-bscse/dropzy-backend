@@ -192,6 +192,7 @@ const resetPasswordToDB = async (token: string, payload: IAuthResetPassword) => 
     );
 };
 
+//change password
 const changePasswordToDB = async (user: JwtPayload, payload: IChangePassword) => {
 
     const { currentPassword, newPassword, confirmPassword } = payload;
@@ -219,6 +220,7 @@ const changePasswordToDB = async (user: JwtPayload, payload: IChangePassword) =>
     await isExistUser.save();
 };
 
+//new access token
 const newAccessTokenToUser = async (token: string) => {
     // Check if the token is provided
     if (!token) {
@@ -246,6 +248,7 @@ const newAccessTokenToUser = async (token: string) => {
     return { accessToken, role: isExistUser.role };
 }
 
+// resend otp to email
 const resendVerificationEmailToDB = async (email: string) => {
 
     // Find the user by ID
@@ -283,6 +286,7 @@ const resendVerificationEmailToDB = async (email: string) => {
     );
 };
 
+// swap user role
 const swapUserRoleFromDB = async (id: string) => {
 
     const isExistUser: any = await UserModel.findById(id);

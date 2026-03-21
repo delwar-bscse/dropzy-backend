@@ -1,7 +1,7 @@
 import { model, Schema } from 'mongoose';
 import { ITrackModel, ITrack } from './track.interface';
 
-const chatSchema = new Schema<ITrack, ITrackModel>(
+const trackSchema = new Schema<ITrack, ITrackModel>(
     {
         senders: [
             {
@@ -26,4 +26,4 @@ const chatSchema = new Schema<ITrack, ITrackModel>(
     { timestamps: true }
 )
 
-export const TrackModel = model<ITrack, ITrackModel>('Track', chatSchema);
+export const TrackModel = model<ITrack, ITrackModel>('Track', trackSchema);

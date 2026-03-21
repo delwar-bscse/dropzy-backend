@@ -11,10 +11,10 @@ router.route("/")
         auth(USER_ROLES.COURIER, USER_ROLES.SENDER),
         TrackController.getTrack
     )
-.patch(
-    auth(USER_ROLES.COURIER),
-    validateRequest(TrackValidation.updateTrackZodValidationSchema),
-    TrackController.updateTrack
-);
+    .patch(
+        auth(USER_ROLES.COURIER),
+        validateRequest(TrackValidation.updateTrackZodValidationSchema),
+        TrackController.updateTrack
+    );
 
 export const TrackRoutes = router;

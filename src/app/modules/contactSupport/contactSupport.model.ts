@@ -2,7 +2,7 @@
 import { model, Schema } from 'mongoose';
 import { IContactSupport, IContactSupportModal } from './contactSupport.interface';
 
-const subCategorySchema = new Schema<IContactSupport, IContactSupportModal>(
+const contactSupportSchema = new Schema<IContactSupport, IContactSupportModal>(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -34,4 +34,4 @@ const subCategorySchema = new Schema<IContactSupport, IContactSupportModal>(
 );
 
 
-export const ContactSupportModel = model<IContactSupport, IContactSupportModal>('ContactSupport', subCategorySchema);
+export const ContactSupportModel = model<IContactSupport, IContactSupportModal>('ContactSupport', contactSupportSchema);

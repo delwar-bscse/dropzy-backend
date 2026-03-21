@@ -7,8 +7,9 @@ import { UserModel } from "../user/user.model";
 import { USER_ROLES } from "../../../enums/user";
 import { ParcelStatus } from "../../../enums/parcel";
 import QueryBuilder from "../../../helpers/QueryBuilder";
-import { FilterQuery } from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 import { generateTrackingId } from "../../../helpers/generateTrackingId";
+import { TransactionService } from "../transaction/transaction.service";
 
 // create parcel to db
 const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Promise<any> => {
@@ -97,7 +98,7 @@ const updateParcelToDB = async (senderId: string, parcelId: string, payload: any
     }
 };
 
-// get all parcels from db
+// parcels overview from db
 const parcelsOverviewFromDB = async (): Promise<any> => {
 
     const data = await ParcelModel.aggregate([
@@ -249,7 +250,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     };
 };
 
-// get all parcels from db for admin
+// get my parcels from db
 const getMyParcelsFromDB = async (
     user: any,
     query: FilterQuery<IParcel>
@@ -393,25 +394,44 @@ const leaveParcelToDB = async (courierId: string, parcelId: string, payload: any
     }
 };
 
-// leave parcel to db
+// accept delivery request of  parcel to db
 const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<any> => {
-    const isExistSender = await UserModel.findOne({ _id: senderId, role: USER_ROLES.SENDER });
-    if (!isExistSender) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Sender not found');
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const isExistSender = await UserModel.findOne({ _id: senderId, role: USER_ROLES.SENDER }).session(session);
+        if (!isExistSender) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, 'Sender not found');
+        }
+
+        const parcel = await ParcelModel.findOneAndUpdate(
+            { _id: parcelId, status: ParcelStatus.ONTHEWAY, sendDeliveryRequest: true, sender: senderId }, {
+            status: ParcelStatus.DELIVERED,
+            [`track_date.${ParcelStatus.DELIVERED}`]: new Date()
+        }, { new: true, session }
+        );
+
+        if (!parcel) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update parcel');
+        }
+
+        await TransactionService.createTransactionToDB({
+            ref: "Parcel Delivery confirmed by Sender",
+            parcel: parcel._id,
+            from: parcel.sender,
+            to: parcel.courier!,
+            balance: parcel.price
+        }, session);
+
+        await session.commitTransaction();
+        return { data: parcel };
+    } catch (error: any) {
+        await session.abortTransaction();
+        throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
+    } finally {
+        await session.endSession();
     }
-
-    const parcel = await ParcelModel.findOneAndUpdate(
-        { _id: parcelId, status: ParcelStatus.ONTHEWAY, sendDeliveryRequest: true, sender: senderId }, {
-        status: ParcelStatus.DELIVERED,
-        [`track_date.${ParcelStatus.DELIVERED}`]: new Date()
-    }, { new: true }
-    ).lean();
-
-    if (!parcel) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update parcel');
-    }
-
-    return { data: parcel };
 };
 
 export const ParcelService = {

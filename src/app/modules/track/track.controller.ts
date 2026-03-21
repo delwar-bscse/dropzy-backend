@@ -4,6 +4,7 @@ import sendResponse from "../../../shared/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { TrackService } from "./track.service";
 
+// create track
 const createTrack = catchAsync(async (req: Request, res: Response) => {
     const track = await TrackService.createTrackToDB({courier: req.user?.id});
 
@@ -15,6 +16,7 @@ const createTrack = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+// update track
 const updateTrack = catchAsync(async (req: Request, res: Response) => {
     const track = await TrackService.updateTrackToDB({id: req.user?.id, payload: req.body});
 
@@ -26,6 +28,7 @@ const updateTrack = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+// get track
 const getTrack = catchAsync(async (req: Request, res: Response) => {
     console.log("Courier : ", req.user.id);
     const track = await TrackService.retrievedTrackToDB({courier: req.user?.id});

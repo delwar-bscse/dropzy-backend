@@ -9,7 +9,7 @@ import mongoose, { Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
 
 
-//create contact support
+// create review to db
 const createReviewToDB = async (from: string, payload: any): Promise<any> => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -75,7 +75,7 @@ const createReviewToDB = async (from: string, payload: any): Promise<any> => {
   }
 };
 
-//create contact support
+// get review from db
 const getReviewFromDB = async (
   id: string,
   page: number = 1,

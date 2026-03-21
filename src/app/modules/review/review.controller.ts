@@ -5,7 +5,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { ReviewService } from './review.service';
 
 
-// create Contact Support
+// create review
 const createReview = catchAsync(
   async (req: Request, res: Response) => {
 
@@ -19,6 +19,7 @@ const createReview = catchAsync(
   }
 );
 
+// get review
 const getMyReviews = catchAsync(
   async (req: Request, res: Response) => {
 
@@ -33,6 +34,7 @@ const getMyReviews = catchAsync(
   }
 );
 
+// get courier review
 const getCourierReviews = catchAsync(
   async (req: Request, res: Response) => {
 
