@@ -61,4 +61,6 @@ router
 router.patch('/delete-user/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.deleteUser);
 router.patch('/active-block-user/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.activeBlockUser);
 
+router.post('/withdraw', auth(USER_ROLES.COURIER, USER_ROLES.SENDER), UserController.withdraw);
+
 export const UserRoutes = router;

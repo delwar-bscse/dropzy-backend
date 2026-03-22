@@ -8,6 +8,8 @@ import fileUploadHandler from '../../middlewares/fileUploaderHandler';
 import { getMultipleFilesPath } from '../../../shared/getFilePath';
 const router = express.Router();
 
+router.post('/stripe-test-payment', ParcelController.stripeTestPayment);
+
 router.route('/')
     .get(
         ParcelController.getParcels

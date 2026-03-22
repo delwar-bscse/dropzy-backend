@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 import path from "path";
-dotenv.config({path: path.join(process.cwd(), '.env')});
+dotenv.config({ path: path.join(process.cwd(), '.env') });
 
-export default{
+export default {
     ip_address: process.env.IP,
     port: process.env.PORT,
     database_url: process.env.DATABASE_URL,
+    frontend_url: process.env.FRONTEND_URL,
     node_env: process.env.NODE_ENV,
     bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
     jwt: {
@@ -14,15 +15,17 @@ export default{
         jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
         jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN
     },
-    stripe:{
-        stripeSecretKey:process.env.STRIPE_API_SECRET,
-        webhookSecret:process.env.WEBHOOK_SECRET,
-        paymentSuccess:process.env.WEBHOOK_SECRET
+    stripe: {
+        secret_key: process.env.STRIPE_SECRET_KEY,
+        public_key: process.env.STRIPE_PUBLIC_KEY,
+        webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+        webhook_secret_payment: process.env.STRIPE_WEBHOOK_SECRET_PAYMENT,
+        webhook_secret_withdraw: process.env.STRIPE_WEBHOOK_SECRET_WITHDRAW,
     },
-    apple:{
+    apple: {
         app_shared_secret: process.env.APP_SHARED_SECRET,
     },
-    email:{
+    email: {
         from: process.env.EMAIL_FROM,
         user: process.env.EMAIL_USER,
         port: process.env.EMAIL_PORT,
@@ -30,10 +33,10 @@ export default{
         pass: process.env.EMAIL_PASS
     },
     admin: {
-        email:process.env.ADMIN_EMAIL,
+        email: process.env.ADMIN_EMAIL,
         password: process.env.ADMIN_PASSWORD
     },
-    redis:{
+    redis: {
         host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT
     },

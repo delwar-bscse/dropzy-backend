@@ -6,6 +6,21 @@ import sendResponse from '../../../shared/sendResponse';
 import { getSingleFilePath } from '../../../shared/getFilePath';
 import pick from '../../../helpers/pick';
 
+//create service controller
+const stripeTestPayment = catchAsync(
+  async (req: Request, res: Response) => {
+
+    const result = await ParcelService.stripeTestPaymentToDB();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Payment success",
+      data: result
+    });
+  }
+);
+
 // post parcel
 const createParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await ParcelService.createParcelToDB(req.user.id, req.body);
@@ -156,6 +171,7 @@ const getParcel = catchAsync(async (req: Request, res: Response, next: NextFunct
 });
 
 export const ParcelController = {
+    stripeTestPayment,
     createParcel,
     updateParcel,
     getParcels,

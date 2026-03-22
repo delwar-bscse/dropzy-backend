@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { TransactionModel } from './transaction.model';
 import { UserModel } from '../user/user.model';
 import ApiError from '../../../errors/ApiErrors';
-import mongoose, { ClientSession, Types } from 'mongoose';
+import { ClientSession, Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
 import QueryBuilder from '../../../helpers/QueryBuilder';
 import { ITransaction } from './transaction.interface';

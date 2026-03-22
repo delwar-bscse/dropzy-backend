@@ -120,6 +120,22 @@ const updateProfile = catchAsync(async (req: Request, res: Response, next: NextF
     });
 });
 
+
+// withdraw courier account balance
+const withdraw = catchAsync(
+    async (req: Request, res: Response, next: NextFunction) => {
+
+        const result = await UserService.withdrawFromDB(req?.user);
+
+        sendResponse(res, {
+            success: true,
+            statusCode: StatusCodes.OK,
+            message: result?.message,
+            data: result?.url ?? "",
+        });
+    }
+);
+
 export const UserController = {
     createUser,
     retrieveProfile,
@@ -129,5 +145,6 @@ export const UserController = {
     deleteUser,
     activeBlockUser,
     approveUser,
-    declineUser
+    declineUser,
+    withdraw
 };

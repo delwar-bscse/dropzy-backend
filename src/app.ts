@@ -10,6 +10,7 @@ import ApiError from "./errors/ApiErrors";
 // import handleStripeWebhook from "./stripe/handleStripeWebhook";
 const app = express();
 import "../src/helpers/cornJob"
+import stripeWebhook from "./stripe/webhook/stripeWebhook";
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -28,13 +29,9 @@ const limiter = rateLimit({
 });
 
 
-/* // Stripe webhook route
-app.use(
-    '/api/stripe/webhook',
-    express.raw({ type: 'application/json' }),
-    handleStripeWebhook
-);
- */
+// Stripe webhook route
+app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
+
 // morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);

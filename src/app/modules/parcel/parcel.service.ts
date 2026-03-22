@@ -10,41 +10,233 @@ import QueryBuilder from "../../../helpers/QueryBuilder";
 import mongoose, { FilterQuery } from "mongoose";
 import { generateTrackingId } from "../../../helpers/generateTrackingId";
 import { TransactionService } from "../transaction/transaction.service";
+import stripe from "../../../config/stripe";
+import config from "../../../config";
+
+// Create Stripe Test Payment
+const stripeTestPaymentToDB = async (): Promise<any> => {
+    try {
+        // ✅ Calculate 30-minute expiry in seconds
+        const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
+        const amount = 10000;
+
+        // ✅ Create price object
+        const price = await stripe.prices.create({
+            unit_amount: amount * 100,
+            currency: "chf",
+            product_data: {
+                name: "Test Payment",
+            },
+        });
+
+        // ✅ Build base session payload
+        const sessionPayload: any = {
+            payment_method_types: ["card", "twint"],
+            mode: "payment",
+            success_url: `${config.frontend_url}/payment-success`,
+            cancel_url: `${config.frontend_url}/payment-failed`,
+            line_items: [{ price: price.id, quantity: 1 }],
+            metadata: {
+                amount: amount,
+                paymentType: "testPayment",
+            },
+            expires_at: expiresAt
+        };
+
+        // ✅ Create checkout session
+        const session = await stripe.checkout.sessions.create(sessionPayload);
+
+        return session.url;
+    } catch (err: any) {
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, err?.message || "Failed to create stripe checkout session");
+    }
+};
 
 // create parcel to db
-const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Promise<any> => {
+// const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Promise<any> => {
+//     try {
+//         const postedDate = new Date();
+
+//         const isExistSender = await UserModel.findOne({ _id: senderId, role: USER_ROLES.SENDER });
+//         if (!isExistSender) {
+//             throw new ApiError(StatusCodes.BAD_REQUEST, 'Sender not found');
+//         }
+
+//         const trackId = await generateTrackingId();
+//         const newPayload = {
+//             ...payload,
+//             trackId,
+//             sender: senderId,
+//             postedDate: postedDate,
+//             status: ParcelStatus.POSTED,
+//             track_date: {
+//                 [ParcelStatus.POSTED]: postedDate
+//             }
+//         }
+
+//         const parcel = await ParcelModel.create(newPayload);
+//         if (!parcel) {
+//             payload.images && unlinkFiles(payload.images);
+//             throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create parcel');
+//         }
+
+//         // ✅ Create Stripe Checkout Session
+//         // ✅ Calculate 30-minute expiry in seconds
+//         const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
+//         const amount = parcel.price!;
+
+//         // ✅ Create price object
+//         const price = await stripe.prices.create({
+//             unit_amount: amount * 100,
+//             currency: "chf",
+//             product_data: {
+//                 name: "Parcel Post Payment",
+//             },
+//         });
+
+//         // ✅ Build base session payload
+//         const sessionPayload: any = {
+//             payment_method_types: ["card", "twint"],
+//             mode: "payment",
+//             success_url: `${config.frontend_url}/payment-success`,
+//             cancel_url: `${config.frontend_url}/payment-failed`,
+//             line_items: [{ price: price.id, quantity: 1 }],
+//             metadata: {
+//                 amount: amount,
+//                 paymentType: "parcelPostPayment",
+//                 parcel: parcel._id.toString()
+//             },
+//             expires_at: expiresAt
+//         };
+
+//         // ✅ Create checkout session
+//         const session = await stripe.checkout.sessions.create(sessionPayload);
+
+
+
+//         if (!session) {
+//             throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create stripe checkout session');
+//         }
+
+//         return {
+//             message: 'Parcel created successfully',
+//             data: {
+//                 parcel,
+//                 url: session.url
+//             }
+//         };
+
+//     } catch (error: any) {
+//         payload.images && unlinkFiles(payload.images);
+//         throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
+//     }
+// };
+
+const createParcelToDB = async (
+    senderId: string,
+    payload: Partial<IParcel>
+): Promise<any> => {
+
+    const session = await mongoose.startSession();
+
     try {
+        session.startTransaction();
+
         const postedDate = new Date();
 
-        const isExistSender = await UserModel.findOne({ _id: senderId, role: USER_ROLES.SENDER });
+        const isExistSender = await UserModel.findOne(
+            { _id: senderId, role: USER_ROLES.SENDER },
+            null,
+            { session }
+        );
+
         if (!isExistSender) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Sender not found');
         }
 
         const trackId = await generateTrackingId();
+
         const newPayload = {
             ...payload,
             trackId,
             sender: senderId,
-            postedDate: postedDate,
+            postedDate,
             status: ParcelStatus.POSTED,
             track_date: {
                 [ParcelStatus.POSTED]: postedDate
             }
-        }
+        };
 
-        const parcel = await ParcelModel.create(newPayload);
-        if (!parcel) {
-            payload.images && unlinkFiles(payload.images);
+        // ✅ Create parcel inside transaction
+        const parcel = await ParcelModel.create([newPayload], { session });
+        if (!parcel || !parcel.length) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create parcel');
         }
 
+        const createdParcel = parcel[0];
+
+        // ✅ Stripe logic (outside DB but inside try)
+        const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
+        const amount = createdParcel.price!;
+
+        const stripeSession = await stripe.checkout.sessions.create({
+            payment_method_types: ["card", "twint"],
+            mode: "payment",
+            success_url: `${config.frontend_url}/payment-success`,
+            cancel_url: `${config.frontend_url}/payment-failed`,
+
+            line_items: [
+                {
+                    price_data: {
+                        currency: "chf",
+                        product_data: { name: "Parcel Post Payment" },
+                        unit_amount: amount * 100,
+                    },
+                    quantity: 1,
+                },
+            ],
+
+            metadata: {
+                amount,
+                paymentType: "parcelPostPayment",
+                parcel: createdParcel._id.toString()
+            },
+
+            expires_at: expiresAt,
+        });
+
+        if (!stripeSession) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, 'Stripe session failed');
+        }
+
+        // ✅ Save sessionId in DB (VERY IMPORTANT)
+        // await ParcelModel.findByIdAndUpdate(
+        //     createdParcel._id,
+        //     {
+        //         paymentSessionId: stripeSession.id,
+        //         paymentStatus: "pending"
+        //     },
+        //     { session }
+        // );
+
+        // ✅ Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+
         return {
             message: 'Parcel created successfully',
-            data: parcel.toObject()
+            data: {
+                parcel: createdParcel,
+                url: stripeSession.url
+            }
         };
+
     } catch (error: any) {
+        await session.abortTransaction();
+        session.endSession();
+
         payload.images && unlinkFiles(payload.images);
+
         throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
     }
 };
@@ -445,5 +637,6 @@ export const ParcelService = {
     acceptDeliveryToDB,
     getParcelsForAdminFromDB,
     parcelsOverviewFromDB,
-    getMyParcelsFromDB
+    getMyParcelsFromDB,
+    stripeTestPaymentToDB
 };
