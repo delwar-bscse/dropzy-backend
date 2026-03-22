@@ -1,6 +1,4 @@
 import Stripe from "stripe";
-import { UserModel } from "../../app/modules/user/user.model";
-import { USER_ROLES } from "../../enums/user";
 import { ParcelModel } from "../../app/modules/parcel/parcel.model";
 import { PaymentStatus } from "../../enums/parcel";
 import ApiError from "../../errors/ApiErrors";
