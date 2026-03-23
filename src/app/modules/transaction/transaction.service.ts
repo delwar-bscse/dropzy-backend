@@ -102,6 +102,7 @@ const getMyTransactionsFromDB = async (user: any, query: any) => {
   return { data, meta };
 };
 
+
 export const TransactionService = {
   createTransactionToDB,
   getTransactionsFromDB,
