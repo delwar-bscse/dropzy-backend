@@ -11,7 +11,6 @@ import redis from "../../../config/redisClient";
 import { TrackService } from "../track/track.service";
 import { logger } from "../../../shared/logger";
 import mongoose, { FilterQuery } from "mongoose";
-import { USER_ROLES } from "../../../enums/user";
 import QueryBuilder from "../../../helpers/QueryBuilder";
 import stripe from "../../../config/stripe";
 
@@ -249,34 +248,34 @@ const withdrawFromDB = async (user: JwtPayload) => {
     try {
         session.startTransaction();
 
-        const User = await UserModel.findById(user.id)
+        const isExistUser = await UserModel.findById(user.id)
             .select("+accountInfo")
             .session(session)
             .lean();
 
-        if (!User) {
+        if (!isExistUser) {
             throw new ApiError(StatusCodes.BAD_REQUEST, "Withdraw - User not found");
         }
 
         // ✅ CASE 1: Account ready to withdraw
         if (
-            User?.accountInfo?.accountId &&
-            User?.accountInfo?.accountUrl &&
-            User?.accountInfo?.status
+            isExistUser?.accountInfo?.accountId &&
+            isExistUser?.accountInfo?.accountUrl &&
+            isExistUser?.accountInfo?.status
         ) {
-            const userBalance = User.balance || 0;
+            const userBalance = isExistUser.balance || 0;
 
             const balance = await stripe.balance.retrieve();
             const availableBalance = balance.available?.[0]?.amount || 0;
 
             if (availableBalance < userBalance * 100) {
-                throw new ApiError(StatusCodes.BAD_REQUEST, "Insufficient platform funds to make transfer.");
+                throw new ApiError(StatusCodes.BAD_REQUEST, "Insufficient balance funds to make transfer.");
             }
 
             const transfer = await stripe.transfers.create({
                 amount: userBalance * 100,
                 currency: "chf",
-                destination: User?.accountInfo?.accountId,
+                destination: isExistUser?.accountInfo?.accountId,
             });
 
             if (!transfer) {
@@ -294,18 +293,19 @@ const withdrawFromDB = async (user: JwtPayload) => {
 
             return {
                 message: `${userBalance} CHF transferred to Stripe account successfully!`,
+                url: isExistUser?.accountInfo?.accountUrl
             };
         }
 
         // ✅ CASE 2: Account exists but not ready
         if (
-            User?.accountInfo?.accountId &&
-            User?.accountInfo?.accountUrl &&
-            !User?.accountInfo?.status
+            isExistUser?.accountInfo?.accountId &&
+            isExistUser?.accountInfo?.accountUrl &&
+            !isExistUser?.accountInfo?.status
         ) {
 
             const accountLink = await stripe.accountLinks.create({
-                account: User.accountInfo.accountId!,
+                account: isExistUser.accountInfo.accountId!,
                 refresh_url: "https://nk6567-dashboard.vercel.app/account-create-failed",
                 return_url: "https://nk6567-dashboard.vercel.app/account-create-successful",
                 type: "account_onboarding",
@@ -339,37 +339,33 @@ const withdrawFromDB = async (user: JwtPayload) => {
         const createAccount = await stripe.accounts.create({
             type: "express",
             country: "US",
-            email: User?.email,
+            email: isExistUser?.email,
             capabilities: {
                 card_payments: { requested: true },
                 transfers: { requested: true },
             },
             business_profile: {
-                name: User?.name!,
-                support_email: User?.email!,
-                support_phone: User?.countryCode! + User?.phoneNumber!,
+                name: isExistUser?.name!,
+                support_email: isExistUser?.email!,
+                support_phone: isExistUser?.countryCode! + isExistUser?.phoneNumber!,
                 url: "https://nk6567-dashboard.vercel.app",
             },
             business_type: "individual",
             individual: {
-                first_name: User?.name,
-                email: User?.email!,
+                first_name: isExistUser?.name,
+                email: isExistUser?.email!,
             },
         });
 
         const accountLink = await stripe.accountLinks.create({
             account: createAccount.id,
             refresh_url: "https://nk6567-dashboard.vercel.app/account-create-failed",
-            return_url:
-                "https://nk6567-dashboard.vercel.app/account-create-successful",
+            return_url: "https://nk6567-dashboard.vercel.app/account-create-successful",
             type: "account_onboarding",
         });
 
         if (!accountLink.url) {
-            throw new ApiError(
-                StatusCodes.BAD_REQUEST,
-                "Failed to create Stripe onboarding link."
-            );
+            throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create Stripe onboarding link.");
         }
 
         await UserModel.findByIdAndUpdate(
@@ -395,7 +391,7 @@ const withdrawFromDB = async (user: JwtPayload) => {
         await session.abortTransaction();
         session.endSession();
         console.error("withdrawFromDB error:", error);
-        throw error;
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to withdraw funds.");
     }
 };
 

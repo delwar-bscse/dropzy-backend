@@ -6,6 +6,7 @@ import { ClientSession, Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
 import QueryBuilder from '../../../helpers/QueryBuilder';
 import { ITransaction } from './transaction.interface';
+import { JwtPayload } from 'jsonwebtoken';
 
 type TTransactionProps = {
   ref: string;
@@ -76,7 +77,7 @@ const getTransactionsFromDB = async (query: any) => {
 };
 
 // get my transactions
-const getMyTransactionsFromDB = async (user: any, query: any) => {
+const getMyTransactionsFromDB = async (user: JwtPayload, query: any) => {
   if (![USER_ROLES.SENDER, USER_ROLES.COURIER].includes(user.role)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'You are not allowed to access this route');
   }
