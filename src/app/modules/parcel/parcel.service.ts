@@ -12,6 +12,8 @@ import { generateTrackingId } from "../../../helpers/generateTrackingId";
 import { TransactionService } from "../transaction/transaction.service";
 import stripe from "../../../config/stripe";
 import config from "../../../config";
+import { sendNotifications } from "../../../helpers/notificationHelper";
+import { Notification_Type } from "../../../enums/notification";
 
 // Create Stripe Test Payment
 const stripeTestPaymentToDB = async (): Promise<any> => {
@@ -53,7 +55,7 @@ const stripeTestPaymentToDB = async (): Promise<any> => {
 };
 
 // Create parcel to db
-const createParcelToDB = async ( senderId: string, payload: Partial<IParcel>): Promise<any> => {
+const createParcelToDB = async (senderId: string, payload: Partial<IParcel>): Promise<any> => {
 
     const session = await mongoose.startSession();
 
@@ -445,6 +447,13 @@ const acceptParcelToDB = async (courierId: string, parcelId: string): Promise<an
     if (!parcel) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to accept parcel');
     }
+    sendNotifications({
+        type: Notification_Type.PARCEL_STATUS,
+        title: 'Parcel accepted',
+        receiver: parcel.sender,
+        sender: parcel.courier,
+        referenceId: parcel._id,
+    });
 
     return {
         data: parcel
@@ -471,6 +480,14 @@ const pickupParcelToDB = async (courierId: string, parcelId: string): Promise<an
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to pickup parcel');
     }
 
+    sendNotifications({
+        type: Notification_Type.PARCEL_STATUS,
+        title: 'Parcel picked up by Courier',
+        receiver: parcel.sender,
+        sender: parcel.courier,
+        referenceId: parcel._id,
+    });
+
     return {
         data: parcel
     };
@@ -493,6 +510,14 @@ const leaveParcelToDB = async (courierId: string, parcelId: string, payload: any
         if (!parcel) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to leave parcel');
         }
+
+        sendNotifications({
+            type: Notification_Type.PARCEL_STATUS,
+            title: 'Parcel left by Courier',
+            receiver: parcel.sender,
+            sender: parcel.courier,
+            referenceId: parcel._id,
+        });
 
         return { data: parcel };
 
@@ -533,6 +558,14 @@ const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<a
             to: parcel.courier!,
             balance: parcel.price
         }, session);
+
+        sendNotifications({
+            type: Notification_Type.PARCEL_STATUS,
+            title: 'Parcel delivery request accepted by Sender',
+            receiver: parcel.courier,
+            sender: parcel.sender,
+            referenceId: parcel._id,
+        });
 
         await session.commitTransaction();
         return { data: parcel };

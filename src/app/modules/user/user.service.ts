@@ -13,6 +13,8 @@ import { logger } from "../../../shared/logger";
 import mongoose, { FilterQuery } from "mongoose";
 import QueryBuilder from "../../../helpers/QueryBuilder";
 import stripe from "../../../config/stripe";
+import { sendNotifications } from "../../../helpers/notificationHelper";
+import { Notification_Type } from "../../../enums/notification";
 
 // create user to DB
 const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
@@ -133,6 +135,7 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update user');
     }
 
+    //delete user from redis
     await redis.del(`user:${id}`);
 
     //create track room for tracking.
@@ -180,6 +183,8 @@ const deleteUserFromDB = async (userId: string): Promise<any> => {
 
     user.isDeleted = true;
     await user.save();
+    //delete user from redis
+    await redis.del(`user:${userId}`);
 
     return user;
 };
@@ -194,6 +199,12 @@ const approveUserToDB = async (userId: string): Promise<any> => {
 
     user.approved = true;
     await user.save();
+
+    sendNotifications({
+        type: Notification_Type.APPROVED_USER,
+        title: 'Admin approved your account',
+        receiver: user._id,
+    });
 
     return user;
 };
@@ -219,6 +230,8 @@ const activeBlockUserFromDB = async (userId: string): Promise<any> => {
 
     user.isActive = !user.isActive;
     await user.save();
+    //delete user from redis
+    await redis.del(`user:${userId}`);
 
     return {
         data: user,
@@ -390,6 +403,8 @@ const withdrawFromDB = async (user: JwtPayload) => {
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
+        //delete user from redis
+        await redis.del(`user:${user.id}`);
         console.error("withdrawFromDB error:", error);
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to withdraw funds.");
     }

@@ -7,6 +7,8 @@ import { ParcelModel } from '../parcel/parcel.model';
 import { ParcelStatus } from '../../../enums/parcel';
 import mongoose, { Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
+import { sendNotifications } from '../../../helpers/notificationHelper';
+import { Notification_Type } from '../../../enums/notification';
 
 
 // create review to db
@@ -62,6 +64,14 @@ const createReviewToDB = async (from: string, payload: any): Promise<any> => {
       { $inc: updateField },
       { session }
     );
+
+    sendNotifications({
+      type: Notification_Type.REVIEW,
+      title: 'You have a new review',
+      receiver: payload.to,
+      sender: new Types.ObjectId(from),
+      referenceId: payload.parcel,
+    });
 
     await session.commitTransaction();
 

@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import colors from 'colors';
 import ApiError from '../../../errors/ApiErrors';
 import { IPrice } from './price.interface';
+import redis from '../../../config/redisClient';
 
 // System: Function to add rule
 const addPriceToDB = async (): Promise<void> => {
@@ -35,7 +36,7 @@ const calculatePriceFromDB = async ({ weight, dimension }: { weight: number; dim
   if (!isExistPrice) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Price not found');
   }
-  
+
 
   const BASE_CHARGE = isExistPrice.basePrice;
   const FREE_WEIGHT = isExistPrice.freeWeight; // kg
@@ -68,11 +69,18 @@ const calculatePriceFromDB = async ({ weight, dimension }: { weight: number; dim
 
 // get price
 const getPriceFromDB = async (): Promise<Partial<IPrice>> => {
+  const cachedPrice = await redis.get('price123');
+  if (cachedPrice) {
+    return JSON.parse(cachedPrice);
+  }
+
   const price = await PriceModel.findOne({}).lean();
 
   if (!price) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Price not found');
   }
+
+  await redis.set('price123', JSON.stringify(price));
 
   return price;
 };
@@ -80,7 +88,14 @@ const getPriceFromDB = async (): Promise<Partial<IPrice>> => {
 // update price
 const updatePriceToDB = async (payload: Partial<IPrice>): Promise<string> => {
 
-  await PriceModel.findOneAndUpdate({}, payload).lean();
+  const price = await PriceModel.findOneAndUpdate({}, payload).lean();
+
+  if (!price) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Price update failed');
+  }
+
+  // await redis.del('price123');
+  await redis.set('price123', JSON.stringify(price));
 
   return `Price updated successfully`;
 };
@@ -92,7 +107,3 @@ export const PriceService = {
   getPriceFromDB,
   calculatePriceFromDB
 };
-
-
-
-

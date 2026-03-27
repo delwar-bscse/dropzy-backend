@@ -17,6 +17,8 @@ import generateOTP from '../../../util/generateOTP';
 import { ResetToken } from '../resetToken/resetToken.model';
 import { UserModel } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
+import { sendNotifications } from '../../../helpers/notificationHelper';
+import { Notification_Type } from '../../../enums/notification';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -94,6 +96,7 @@ const forgetPasswordToDB = async (email: string) => {
 
 //verify email
 const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
+    const superAdmin = await UserModel.findOne({ role: USER_ROLES.SUPER_ADMIN });
 
     const { email, oneTimeCode } = payload;
     const isExistUser = await UserModel.findOne({ email }).select('+authentication');
@@ -122,7 +125,14 @@ const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
             { _id: isExistUser._id },
             { verified: true, authentication: { oneTimeCode: null, expireAt: null } }
         );
-        message = 'Email verify successfully';
+        sendNotifications({
+            type: Notification_Type.NEW_USER,
+            title: 'New user registered in your platform',
+            receiver: superAdmin!._id,
+            sender: isExistUser._id,
+            referenceId: isExistUser._id,
+        });
+        message = 'Email verified successfully';
     } else {
         await UserModel.findOneAndUpdate(
             { _id: isExistUser._id },
