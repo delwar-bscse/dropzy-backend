@@ -13,10 +13,10 @@ const createUserZodValidationSchema = z.object({
 
 // Account Info
 const accountInfoSchema = z.object({
-    status: z.boolean().optional(),
-    accountId: z.string().optional(),
-    externalAccountId: z.string().optional(),
-    accountUrl: z.string().url().optional().or(z.literal('')),
+    // status: z.boolean().optional(),
+    // accountId: z.string().optional(),
+    // externalAccountId: z.string().optional(),
+    // accountUrl: z.string().url().optional().or(z.literal('')),
     accountHolderName: z.string().optional(),
     iban: z.string().optional(),
     landOfBank: z.string().optional(),
