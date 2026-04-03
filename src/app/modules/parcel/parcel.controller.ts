@@ -36,7 +36,7 @@ const createParcel = catchAsync(async (req: Request, res: Response, next: NextFu
 // update parcel
 const updateParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     // console.log("Result : ", req.body)
-    const result = await ParcelService.updateParcelToDB(req.user.id, req.params.id, req.body);
+    const result = await ParcelService.updateParcelToDB(req.user.id,  req.params.id as string, req.body);
 
     sendResponse(res, {
         success: true,
@@ -48,7 +48,7 @@ const updateParcel = catchAsync(async (req: Request, res: Response, next: NextFu
 
 // update parcel
 const acceptParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ParcelService.acceptParcelToDB(req.user.id, req.params.id);
+    const result = await ParcelService.acceptParcelToDB(req.user.id,  req.params.id as string);
 
     sendResponse(res, {
         success: true,
@@ -60,7 +60,7 @@ const acceptParcel = catchAsync(async (req: Request, res: Response, next: NextFu
 
 // update parcel
 const pickupParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ParcelService.pickupParcelToDB(req.user.id, req.params.id);
+    const result = await ParcelService.pickupParcelToDB(req.user.id,  req.params.id as string);
 
     sendResponse(res, {
         success: true,
@@ -73,7 +73,7 @@ const pickupParcel = catchAsync(async (req: Request, res: Response, next: NextFu
 // update parcel
 const leaveParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const proofImage = await getSingleFilePath(req.files, "proofImage");
-    const result = await ParcelService.leaveParcelToDB(req.user.id, req.params.id, { proofImage });
+    const result = await ParcelService.leaveParcelToDB(req.user.id,  req.params.id as string, { proofImage });
 
     sendResponse(res, {
         success: true,
@@ -85,7 +85,7 @@ const leaveParcel = catchAsync(async (req: Request, res: Response, next: NextFun
 
 // update parcel
 const acceptDelivery = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ParcelService.acceptDeliveryToDB(req.user.id, req.params.id);
+    const result = await ParcelService.acceptDeliveryToDB(req.user.id,  req.params.id as string);
 
     sendResponse(res, {
         success: true,
@@ -99,6 +99,7 @@ const acceptDelivery = catchAsync(async (req: Request, res: Response, next: Next
 const getParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
     const result = await ParcelService.getParcelsFromDB(req.query);
+    // console.log("get parcels : ", JSON.parse(req.query.routePoints as string));
 
     sendResponse(res, {
         success: true,
@@ -160,7 +161,7 @@ const parcelsOverview = catchAsync(async (req: Request, res: Response, next: Nex
 
 // get single parcel
 const getParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ParcelService.getParcelToDB(req.params.id);
+    const result = await ParcelService.getParcelToDB( req.params.id as string);
 
     sendResponse(res, {
         success: true,

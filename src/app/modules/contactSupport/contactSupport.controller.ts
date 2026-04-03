@@ -23,7 +23,7 @@ const createContactSupport = catchAsync(
 const updateContactSupport = catchAsync(
   async (req: Request, res: Response) => {
 
-    const result = await ContactSupportService.updateContactSupportToDB(req.params.id, req.body.reply);
+    const result = await ContactSupportService.updateContactSupportToDB( req.params.id as string, req.body.reply);
 
     sendResponse(res, {
       success: true,
@@ -37,7 +37,7 @@ const updateContactSupport = catchAsync(
 const getContactSupport = catchAsync(
   async (req: Request, res: Response) => {
 
-    const result = await ContactSupportService.getContactSupportToDB(req.params.id);
+    const result = await ContactSupportService.getContactSupportToDB( req.params.id as string);
 
     sendResponse(res, {
       success: true,
@@ -51,7 +51,7 @@ const getContactSupport = catchAsync(
 const deleteContactSupport = catchAsync(
   async (req: Request, res: Response) => {
 
-    const result = await ContactSupportService.deleteContactSupportFromDB(req.params.id);
+    const result = await ContactSupportService.deleteContactSupportFromDB( req.params.id as string);
 
     sendResponse(res, {
       success: true,

@@ -257,6 +257,9 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     const radius = (Number(payload.radius) || 10) / 6378.1; //radius in radians;
     const status = payload.status;
 
+    const routePoints = payload.routePoints ? JSON.parse(payload.routePoints) : [];
+    console.log("Service: Route Points", routePoints)
+
     const match: any = {};
 
     if (status) {
@@ -266,23 +269,41 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
         match.trackId = { $regex: payload.trackId };
     }
 
-    // pickup filter
-    if (p_lng && p_lat) {
-        match.p_coordinates = {
-            $geoWithin: {
-                $centerSphere: [[Number(p_lng), Number(p_lat)], radius],
+    // const routePoints = [
+    //     [90.4125, 23.8103], // p1 (Dhaka)
+    //     [90.5000, 23.7000], // p2
+    //     [90.7000, 23.5000], // p3
+    //     [91.7832, 22.3569], // p4 (Chittagong)
+    // ];
+
+    // ✅ Add route-based condition
+    if (routePoints.length) {
+        match.$or = routePoints.map((point: number[]) => ({
+            p_coordinates: {
+                $geoWithin: {
+                    $centerSphere: [point, radius],
+                },
             },
-        };
+        }));
     }
 
+    // pickup filter
+    // if (p_lng && p_lat) {
+    //     match.p_coordinates = {
+    //         $geoWithin: {
+    //             $centerSphere: [[Number(p_lng), Number(p_lat)], radius],
+    //         },
+    //     };
+    // }
+
     // destination filter
-    if (d_lng && d_lat) {
-        match.d_coordinates = {
-            $geoWithin: {
-                $centerSphere: [[Number(d_lng), Number(d_lat)], radius],
-            },
-        };
-    }
+    // if (d_lng && d_lat) {
+    //     match.d_coordinates = {
+    //         $geoWithin: {
+    //             $centerSphere: [[Number(d_lng), Number(d_lat)], radius],
+    //         },
+    //     };
+    // }
 
     const pipeline: any[] = [
         { $match: match },

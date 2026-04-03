@@ -62,7 +62,7 @@ const deleteProfile = catchAsync(async (req: Request, res: Response, next: NextF
 
 // admin: delete user
 const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserService.deleteUserFromDB(req.params.id);
+    const result = await UserService.deleteUserFromDB( req.params.id as string);
 
     sendResponse(res, {
         success: true,
@@ -74,7 +74,7 @@ const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunc
 
 // approve user
 const approveUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserService.approveUserToDB(req.params.id);
+    const result = await UserService.approveUserToDB( req.params.id as string);
 
     sendResponse(res, {
         success: true,
@@ -86,7 +86,7 @@ const approveUser = catchAsync(async (req: Request, res: Response, next: NextFun
 
 // Decline user
 const declineUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserService.declineUserFromDB(req.params.id);
+    const result = await UserService.declineUserFromDB( req.params.id as string);
 
     sendResponse(res, {
         success: true,
@@ -98,7 +98,7 @@ const declineUser = catchAsync(async (req: Request, res: Response, next: NextFun
 
 // active or block user
 const activeBlockUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserService.activeBlockUserFromDB(req.params.id);
+    const result = await UserService.activeBlockUserFromDB( req.params.id as string);
 
     sendResponse(res, {
         success: true,
