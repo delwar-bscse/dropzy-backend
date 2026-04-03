@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import config from '.';
 
 const stripe = new Stripe(config.stripe.secret_key as string, {
-    apiVersion: '2025-06-30.basil',
+    apiVersion: '2025-08-27.basil',
 });
 
 export default stripe;
@@ -11,8 +11,8 @@ export default stripe;
 /*
 Need to setup below steps to get stripe webhook locally
 
-// install stripe cli globally
-npm install -g stripe
+******************* Windows PowerShell *******************
+winget install Stripe.StripeCLI
 
 // login stripe account
 stripe login

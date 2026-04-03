@@ -125,6 +125,21 @@ const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
             { _id: isExistUser._id },
             { verified: true, authentication: { oneTimeCode: null, expireAt: null } }
         );
+        //create token
+        const accessToken = jwtHelper.createToken(
+            { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+            config.jwt.jwt_secret as Secret,
+            config.jwt.jwt_expire_in as string
+        );
+
+        //create token
+        const refreshToken = jwtHelper.createToken(
+            { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+            config.jwt.jwtRefreshSecret as Secret,
+            config.jwt.jwtRefreshExpiresIn as string
+        );
+
+        //send notification to super admin
         sendNotifications({
             type: Notification_Type.NEW_USER,
             title: 'New user registered in your platform',
@@ -132,7 +147,9 @@ const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
             sender: isExistUser._id,
             referenceId: isExistUser._id,
         });
+        
         message = 'Email verified successfully';
+        data = { accessToken, refreshToken, role: isExistUser.role };
     } else {
         await UserModel.findOneAndUpdate(
             { _id: isExistUser._id },
@@ -153,7 +170,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
             expireAt: new Date(Date.now() + 5 * 60000),
         });
         message = 'Verification Successful: Please securely store and utilize this code for reset password';
-        data = createToken;
+        data = { token: createToken };
     }
     return { data, message };
 };
