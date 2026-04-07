@@ -5,7 +5,7 @@ import { IParcel, IReceiver, TParcelModal, ITrackDate } from './parcel.interface
 // --- Sub-Schemas ---
 const ReceiverSchema = new Schema<IReceiver>({
   name: { type: String, required: true },
-  countryCode: { type: String, required: true },
+  countryCode: { type: String },
   phoneNumber: { type: String, required: true },
 }, { _id: false });
 

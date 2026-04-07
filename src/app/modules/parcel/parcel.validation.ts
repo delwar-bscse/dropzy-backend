@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const ReceiverSchema1 = z.object({
     name: z.string({ required_error: 'Name is required' }),
-    countryCode: z.string({ required_error: 'Country Code is required' }),
+    countryCode: z.string().optional(),
     phoneNumber: z.string({ required_error: 'Phone Number is required' }),
 });
 

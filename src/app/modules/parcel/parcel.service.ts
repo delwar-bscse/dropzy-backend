@@ -250,13 +250,13 @@ const parcelsOverviewFromDB = async (): Promise<any> => {
 
 // get all parcels from db
 const getParcelsFromDB = async (payload: any): Promise<any> => {
-    const { p_lng, p_lat, d_lng, d_lat } = payload;
+    // const { p_lng, p_lat, d_lng, d_lat } = payload;
     const page = Number(payload.page) || 1;
     const limit = Number(payload.limit) || 10;
     const skip = (page - 1) * limit;
     const radius = (Number(payload.radius) || 10) / 6378.1; //radius in radians;
     const status = payload.status;
-
+    // const routePoints = [ [90.4125, 23.8103],[90.5000, 23.7000], [90.7000, 23.5000],[91.7832, 22.3569],];
     const routePoints = payload.routePoints ? JSON.parse(payload.routePoints) : [];
     console.log("Service: Route Points", routePoints)
 
@@ -269,12 +269,6 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
         match.trackId = { $regex: payload.trackId };
     }
 
-    // const routePoints = [
-    //     [90.4125, 23.8103], // p1 (Dhaka)
-    //     [90.5000, 23.7000], // p2
-    //     [90.7000, 23.5000], // p3
-    //     [91.7832, 22.3569], // p4 (Chittagong)
-    // ];
 
     // ✅ Add route-based condition
     if (routePoints.length) {
