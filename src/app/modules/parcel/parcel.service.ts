@@ -431,8 +431,28 @@ const getParcelsForAdminFromDB = async (query: FilterQuery<IParcel>): Promise<an
 };
 
 // get parcel from db
+// const getParcelToDB = async (parcelId: string): Promise<any> => {
+//     const isExistParcel = await ParcelModel.findById(parcelId).populate(['sender', 'courier']).lean();
+//     if (!isExistParcel) {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, 'Parcel not found');
+//     }
+
+//     return {
+//         data: isExistParcel
+//     };
+// };
 const getParcelToDB = async (parcelId: string): Promise<any> => {
-    const isExistParcel = await ParcelModel.findById(parcelId).lean();
+    const isExistParcel = await ParcelModel.findById(parcelId)
+        .populate({
+            path: 'sender',
+            select: 'name email address phoneNumber'
+        })
+        .populate({
+            path: 'courier',
+            select: 'name email address phoneNumber'
+        })
+        .lean();
+
     if (!isExistParcel) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Parcel not found');
     }
