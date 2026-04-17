@@ -281,24 +281,6 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
         }));
     }
 
-    // pickup filter
-    // if (p_lng && p_lat) {
-    //     match.p_coordinates = {
-    //         $geoWithin: {
-    //             $centerSphere: [[Number(p_lng), Number(p_lat)], radius],
-    //         },
-    //     };
-    // }
-
-    // destination filter
-    // if (d_lng && d_lat) {
-    //     match.d_coordinates = {
-    //         $geoWithin: {
-    //             $centerSphere: [[Number(d_lng), Number(d_lat)], radius],
-    //         },
-    //     };
-    // }
-
     const pipeline: any[] = [
         { $match: match },
         { $sort: { createdAt: -1 } },
@@ -349,7 +331,6 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
         {
             $project: {
                 sendDeliveryRequest: 0,
-                track_date: 0,
             }
         }
     ];
@@ -362,6 +343,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     });
 
     const parcels = await ParcelModel.aggregate(pipeline);
+    console.log("Parcels : ", parcels[0]?.data)
 
     const total = Number(parcels[0]?.total[0]?.count || 0);
     const totalPage = Math.ceil(total / limit);
@@ -405,6 +387,7 @@ const getMyParcelsFromDB = async (
         usersQuery.modelQuery.lean().exec(),
         builder.getPaginationInfo(),
     ]);
+    // console.log("Parcels : ", data)
 
     return { data, meta };
 };
@@ -431,16 +414,6 @@ const getParcelsForAdminFromDB = async (query: FilterQuery<IParcel>): Promise<an
 };
 
 // get parcel from db
-// const getParcelToDB = async (parcelId: string): Promise<any> => {
-//     const isExistParcel = await ParcelModel.findById(parcelId).populate(['sender', 'courier']).lean();
-//     if (!isExistParcel) {
-//         throw new ApiError(StatusCodes.BAD_REQUEST, 'Parcel not found');
-//     }
-
-//     return {
-//         data: isExistParcel
-//     };
-// };
 const getParcelToDB = async (parcelId: string): Promise<any> => {
     const isExistParcel = await ParcelModel.findById(parcelId)
         .populate({

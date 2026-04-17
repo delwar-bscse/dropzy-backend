@@ -11,6 +11,7 @@ import ApiError from "./errors/ApiErrors";
 const app = express();
 import "../src/helpers/cornJob"
 import stripeWebhook from "./stripe/webhook/stripeWebhook";
+import path from "path";
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -45,7 +46,8 @@ app.use(requestIp.mw());
 app.use(limiter);
 
 //file retrieve
-app.use(express.static('uploads'));
+// app.use(express.static('uploads'));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 //router
 app.use('/api/v1', router);
