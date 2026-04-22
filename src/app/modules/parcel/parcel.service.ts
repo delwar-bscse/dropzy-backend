@@ -256,7 +256,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     const limit = Number(payload.limit) || 10;
     const skip = (page - 1) * limit;
     const radius = (Number(payload.radius) || 10) / 6378.1; //radius in radians;
-    const status = payload.status;
+    const status = payload.status || ParcelStatus.POSTED;
     const d_lng = payload.d_lng;
     const d_lat = payload.d_lat;
     const searchTerm = payload.searchTerm;
@@ -621,6 +621,39 @@ const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<a
     }
 };
 
+// accept delivery request of  parcel to db
+const cancelParcelToDB = async (courierId: string, parcelId: string): Promise<any> => {
+    const isExistCourier = await UserModel.findOne({ _id: courierId, role: USER_ROLES.COURIER });
+    if (!isExistCourier) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Courier not found');
+    }
+
+    const payload = {
+        status: ParcelStatus.POSTED,
+        courier: null,
+        $set: {
+            [`track_date.${ParcelStatus.ACCEPTED}`]: null
+        }
+    }
+
+    const parcel = await ParcelModel.findOneAndUpdate({ _id: parcelId, status: ParcelStatus.ACCEPTED }, payload, { new: true });
+
+    if (!parcel) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to cancel parcel');
+    }
+    sendNotifications({
+        type: Notification_Type.PARCEL_STATUS,
+        title: 'Courier cancel parcel accepted',
+        receiver: parcel.sender,
+        sender: parcel.courier,
+        referenceId: parcel._id,
+    });
+
+    return {
+        data: parcel
+    };
+};
+
 export const ParcelService = {
     createParcelToDB,
     updateParcelToDB,
@@ -633,5 +666,6 @@ export const ParcelService = {
     getParcelsForAdminFromDB,
     parcelsOverviewFromDB,
     getMyParcelsFromDB,
-    stripeTestPaymentToDB
+    stripeTestPaymentToDB,
+    cancelParcelToDB
 };
