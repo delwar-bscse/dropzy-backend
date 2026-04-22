@@ -161,7 +161,7 @@ const parcelsOverview = catchAsync(async (req: Request, res: Response, next: Nex
 
 // get single parcel
 const getParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await ParcelService.getParcelToDB( req.params.id as string);
+    const result = await ParcelService.getParcelToDB( req.user.id, req.params.id as string);
 
     sendResponse(res, {
         success: true,

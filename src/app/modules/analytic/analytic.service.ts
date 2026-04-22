@@ -115,10 +115,10 @@ const getParcelsFromDB = async (year: number): Promise<any> => {
 
 // get users weekly summary
 const getUsersFromDB = async (date: string): Promise<any> => {
-  const startDate = new Date(date || new Date());
+  const endDate = new Date(date || new Date());
 
-  const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 6); // next 7 days (including start)
+  const startDate = new Date(endDate);
+  startDate.setDate(endDate.getDate() - 6); // previous 7 days (including endDate)
 
   const data = await UserModel.aggregate([
     {
@@ -144,7 +144,7 @@ const getUsersFromDB = async (date: string): Promise<any> => {
     },
   ]);
 
-  // Generate 7 days manually
+  // Generate previous 7 days manually
   const result = [];
 
   for (let i = 0; i < 7; i++) {
@@ -157,7 +157,6 @@ const getUsersFromDB = async (date: string): Promise<any> => {
 
     result.push({
       date: current,
-      // day: current.toLocaleDateString("en-US", { weekday: "short" }),
       count: found ? found.count : 0,
     });
   }
@@ -167,11 +166,10 @@ const getUsersFromDB = async (date: string): Promise<any> => {
 
 // get my progress weekly summary
 const getMyProgressFromDB = async (user: JwtPayload, date: string): Promise<any> => {
-  const startDate = new Date(date || new Date());
+  const endDate = new Date(date || new Date());
 
-  const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 6);
-  // console.log("User : ", user)
+  const startDate = new Date(endDate);
+  startDate.setDate(endDate.getDate() - 6);
 
   const data = await TransactionModel?.aggregate([
     {

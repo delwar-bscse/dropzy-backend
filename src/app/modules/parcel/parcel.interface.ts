@@ -45,6 +45,7 @@ export interface IParcel {
     images?: string[];
     proofImage?: string;
     track_date?: ITrackDate;
+    isFavorite?: boolean;
 }
 
 export type TParcelModal = {

@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import { FavListModel } from './favList.model';
-import { UserModel } from '../user/user.model';
 import ApiError from '../../../errors/ApiErrors';
 
 
@@ -51,14 +50,19 @@ const getFavListToDB = async (userId: string): Promise<any> => {
 };
 
 
-// const getFavListWithDetailsFromDB = async (
-//   userId: string
-// ): Promise<{ data: any[] }> => {
-//   const isExistUser: any = await UserModel.findById(userId).populate('favListIds').lean();
+// get my single fav
+const getFavFromDB = async (
+  userId: string,
+  parcelId: string
+): Promise<{ data: any }> => {
 
-//   return { data:isExistUser };
-// };
+  const isExistFavorite = await FavListModel.exists({ userId, parcelIds: parcelId });
 
+
+  return { data: isExistFavorite ? true : false };
+};
+
+// get my fav lists
 const getFavListWithDetailsFromDB = async (
   userId: string
 ): Promise<{ data: any }> => {
@@ -86,5 +90,6 @@ const getFavListWithDetailsFromDB = async (
 export const FavListService = {
   createFavListToDB,
   getFavListToDB,
-  getFavListWithDetailsFromDB
+  getFavListWithDetailsFromDB,
+  getFavFromDB
 };

@@ -14,6 +14,7 @@ import stripe from "../../../config/stripe";
 import config from "../../../config";
 import { sendNotifications } from "../../../helpers/notificationHelper";
 import { Notification_Type } from "../../../enums/notification";
+import { FavListModel } from "../favList/favList.model";
 
 // Create Stripe Test Payment
 const stripeTestPaymentToDB = async (): Promise<any> => {
@@ -256,9 +257,13 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     const skip = (page - 1) * limit;
     const radius = (Number(payload.radius) || 10) / 6378.1; //radius in radians;
     const status = payload.status;
+    const d_lng = payload.d_lng;
+    const d_lat = payload.d_lat;
+    const searchTerm = payload.searchTerm;
     // const routePoints = [ [90.4125, 23.8103],[90.5000, 23.7000], [90.7000, 23.5000],[91.7832, 22.3569],];
     const routePoints = payload.routePoints ? JSON.parse(payload.routePoints) : [];
-    console.log("Service: Route Points", routePoints)
+    // console.log("Service: Route Points", routePoints)
+    // console.log("Service: Destination", { d_lng, d_lat })
 
     const match: any = {};
 
@@ -267,6 +272,15 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     }
     if (payload.trackId) {
         match.trackId = { $regex: payload.trackId };
+    }
+
+    if (searchTerm) {
+        match.$or = [
+            { trackId: { $regex: searchTerm } },
+            { pickup: { $regex: searchTerm } },
+            { destination: { $regex: searchTerm } },
+            { note: { $regex: searchTerm } },
+        ]
     }
 
 
@@ -279,6 +293,13 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
                 },
             },
         }));
+    }
+    if (d_lng && d_lat) {
+        match.d_coordinates = {
+            $geoWithin: {
+                $centerSphere: [[Number(d_lng), Number(d_lat)], radius],
+            },
+        };
     }
 
     const pipeline: any[] = [
@@ -295,6 +316,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
                         $project: {
                             name: 1,
                             email: 1,
+                            profile: 1,
                             contact: 1,
                             s_rides: 1,
                             s_rating: 1
@@ -317,6 +339,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
                         $project: {
                             name: 1,
                             email: 1,
+                            profile: 1,
                             contact: 1,
                             c_rides: 1,
                             c_rating: 1
@@ -343,7 +366,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     });
 
     const parcels = await ParcelModel.aggregate(pipeline);
-    console.log("Parcels : ", parcels[0]?.data)
+    // console.log("Parcels : ", parcels[0]?.data)
 
     const total = Number(parcels[0]?.total[0]?.count || 0);
     const totalPage = Math.ceil(total / limit);
@@ -365,11 +388,11 @@ const getMyParcelsFromDB = async (
     query: FilterQuery<IParcel>
 ): Promise<any> => {
 
+    // console.log("base query : ", baseQuery)
     const baseQuery =
         user.role === USER_ROLES.SENDER
             ? { sender: user.id }
             : { courier: user.id };
-    // console.log("base query : ", baseQuery)
 
     const builder = new QueryBuilder<IParcel>(
         ParcelModel.find(baseQuery),
@@ -379,6 +402,7 @@ const getMyParcelsFromDB = async (
     const usersQuery = builder
         .search(['trackId', 'pickup', 'destination', 'note',])
         .filter()
+        .populate(['sender', 'courier'], { sender: 'name email profile contact s_rides s_rating', courier: 'name email profile contact s_rides s_rating' })
         .sort(['-createdAt'])
         .paginate()
         .fields();
@@ -414,21 +438,33 @@ const getParcelsForAdminFromDB = async (query: FilterQuery<IParcel>): Promise<an
 };
 
 // get parcel from db
-const getParcelToDB = async (parcelId: string): Promise<any> => {
+const getParcelToDB = async (userId: string, parcelId: string): Promise<any> => {
     const isExistParcel = await ParcelModel.findById(parcelId)
         .populate({
             path: 'sender',
-            select: 'name email address phoneNumber'
+            select: 'name email profile address phoneNumber'
         })
         .populate({
             path: 'courier',
-            select: 'name email address phoneNumber'
+            select: 'name email profile address phoneNumber'
         })
         .lean();
 
     if (!isExistParcel) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Parcel not found');
     }
+
+    // const isExistFavorite = await FavListModel.findOne({ userId: new mongoose.Types.ObjectId(userId), parcelIds: { $in: [new mongoose.Types.ObjectId(parcelId)] } });
+    const isExistFavorite = await FavListModel.exists({
+        userId,
+        parcelIds: parcelId
+    });
+
+
+
+    // add isFavorite to parcel details
+    // console.log({isExistFavorite})
+    isExistParcel.isFavorite = isExistFavorite ? true : false
 
     return {
         data: isExistParcel
