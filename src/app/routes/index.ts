@@ -11,6 +11,8 @@ import { TransactionRoutes } from '../modules/transaction/transaction.route';
 import { AnalyticRoutes } from '../modules/analytic/transaction.route';
 import { DimensionFetcherRoutes } from '../modules/dimensionFetcher/dimensionFetcher.routes';
 import { FavListRoutes } from '../modules/favList/favList.route';
+import { WithdrawRoutes } from '../modules/withdraw/withdraw.route';
+import { NotificationRoutes } from '../modules/notification/notification.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -23,9 +25,11 @@ const apiRoutes = [
     { path: "/rule", route: RuleRoutes },
     { path: "/price", route: PriceRoutes },
     { path: "/transaction", route: TransactionRoutes },
+    { path: "/withdraw", route: WithdrawRoutes },
     { path: "/analytic", route: AnalyticRoutes },
     { path: "/dimension", route: DimensionFetcherRoutes },
     { path: "/fav-list", route: FavListRoutes },
+    { path: "/notifications", route: NotificationRoutes },
 ]
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

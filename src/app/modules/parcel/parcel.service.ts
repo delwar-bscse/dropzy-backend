@@ -595,17 +595,22 @@ const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<a
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update parcel');
         }
 
+        const calculateResult = await calculateProfit({ l: parcel.length, w: parcel.width, h: parcel.height, price: parcel.price });
+
+        // Courier balance also updated in createTransactionToDB
         await TransactionService.createTransactionToDB({
-            ref: "Parcel Delivery confirmed by Sender",
+            ref: `Parcel Delivery confirmed by ${isExistSender.name}`,
             parcel: parcel._id,
             from: parcel.sender,
             to: parcel.courier!,
-            balance: parcel.price
+            balance: parcel.price,
+            courierBalance: calculateResult.courierProfit,
+            systemBalance: calculateResult.companyProfit
         }, session);
 
         sendNotifications({
             type: Notification_Type.PARCEL_STATUS,
-            title: 'Parcel delivery request accepted by Sender',
+            title: `Parcel Delivery confirmed by ${isExistSender.name}`,
             receiver: parcel.courier,
             sender: parcel.sender,
             referenceId: parcel._id,

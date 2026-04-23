@@ -15,6 +15,7 @@ import QueryBuilder from "../../../helpers/QueryBuilder";
 import stripe from "../../../config/stripe";
 import { sendNotifications } from "../../../helpers/notificationHelper";
 import { Notification_Type } from "../../../enums/notification";
+import { WithdrawModel } from "../withdraw/withdraw.model";
 
 // create user to DB
 const createUserToDB = async (payload: Partial<IUser>): Promise<any> => {
@@ -254,7 +255,6 @@ const deleteUnverifiedAccount = async () => {
     logger.info(`Deleted ${result.deletedCount} unverified accounts.`);
 };
 
-
 //withdraw amount to provider account from admin account
 const withdrawFromDB = async (user: JwtPayload) => {
     const session = await mongoose.startSession();
@@ -298,6 +298,17 @@ const withdrawFromDB = async (user: JwtPayload) => {
             await UserModel.updateOne(
                 { _id: user.id },
                 { $set: { balance: 0 } },
+                { session }
+            );
+
+            await WithdrawModel.create(
+                [
+                    {
+                        to: "Stripe Account",
+                        user: user.id,
+                        balance: userBalance
+                    },
+                ],
                 { session }
             );
 

@@ -1,4 +1,4 @@
-import { PriceModel } from './model.model';
+import { PriceModel } from './price.model';
 import { StatusCodes } from 'http-status-codes';
 import colors from 'colors';
 import ApiError from '../../../errors/ApiErrors';
@@ -9,6 +9,7 @@ import redis from '../../../config/redisClient';
 const addPriceToDB = async (): Promise<void> => {
 
   const data = {
+    companyCharge: 0,
     basePrice: 0,
     freeWeight: 0,
     freeDimension: 0,
@@ -101,9 +102,11 @@ const updatePriceToDB = async (payload: Partial<IPrice>): Promise<string> => {
 };
 
 
+
+
 export const PriceService = {
   addPriceToDB,
   updatePriceToDB,
   getPriceFromDB,
-  calculatePriceFromDB
+  calculatePriceFromDB,
 };

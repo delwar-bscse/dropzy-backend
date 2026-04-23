@@ -3,7 +3,7 @@ import { PriceController } from './price.controller';
 import auth from '../../middlewares/auth';
 import { USER_ROLES } from '../../../enums/user';
 import validateRequest from '../../middlewares/validateRequest';
-import { PriceValidation } from './user.validation';
+import { PriceValidation } from './price.validation';
 
 const router = express.Router();
 

@@ -7,7 +7,8 @@ const getUserNotificationAmountFromDB = async (
 ): Promise<any> => {
 
   const result = await NotificationModel.countDocuments({
-    receiver: new Types.ObjectId(userId),
+    // receiver: new Types.ObjectId(userId),
+    receiver: userId,
     isRead: false
   });
 

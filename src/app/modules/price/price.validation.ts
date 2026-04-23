@@ -2,13 +2,14 @@ import { z } from 'zod';
 
 // 1. Create User Schema
 const updatePriceZodValidationSchema = z.object({
-    body: z.object({
-        basePrice: z.number().optional(),
-        freeWeight: z.number().optional(),
-        freeDimension: z.number().optional(),
-        weightRate: z.number().optional(),
-        dimensionRate: z.number().optional(),
-    })
+  body: z.object({
+    companyCharge: z.number().optional(),
+    basePrice: z.number().optional(),
+    freeWeight: z.number().optional(),
+    freeDimension: z.number().optional(),
+    weightRate: z.number().optional(),
+    dimensionRate: z.number().optional(),
+  })
 });
 
 const calculatePriceZodValidationSchema = z.object({
@@ -27,6 +28,6 @@ const calculatePriceZodValidationSchema = z.object({
 
 
 export const PriceValidation = {
-    updatePriceZodValidationSchema,
-    calculatePriceZodValidationSchema
+  updatePriceZodValidationSchema,
+  calculatePriceZodValidationSchema
 }

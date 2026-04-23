@@ -14,23 +14,24 @@ type TTransactionProps = {
   from: Types.ObjectId;
   to: Types.ObjectId;
   balance: number;
+  courierBalance: number;
+  systemBalance: number
 };
 //create transaction
 const createTransactionToDB = async (payload: TTransactionProps, session: ClientSession): Promise<any> => {
 
-  const newPayload = {
-    ...payload,
-    // ref: "ABC",
-    // parcel: "69ba1374336f0f964d37d6f3",
-    // from: "69b9489e6642b044b97d90b4",
-    // to: "69b949c46642b044b97d90c1",
-    // balance: amount,
-    courierBalance: payload.balance * 0.9,
-    systemBalance: payload.balance * 0.1
-  };
+  // const newPayload = {
+  //   ref: "ABC",
+  //   parcel: "69ba1374336f0f964d37d6f3",
+  //   from: "69b9489e6642b044b97d90b4",
+  //   to: "69b949c46642b044b97d90c1",
+  //   balance: 23,
+  //   courierBalance: 180,
+  //   systemBalance: 20
+  // };
 
   // ✅ Create transaction with session
-  const transaction = await TransactionModel.create([newPayload], { session });
+  const transaction = await TransactionModel.create([payload], { session });
 
   if (!transaction || transaction.length === 0) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create transaction');
@@ -38,9 +39,9 @@ const createTransactionToDB = async (payload: TTransactionProps, session: Client
 
   // ✅ Update user WITH session
   const user = await UserModel.findByIdAndUpdate(
-    newPayload.to,
-    { $inc: { balance: newPayload.courierBalance } },
-    { new: true, session } // 👈 correct way
+    payload.to,
+    { $inc: { balance: payload.courierBalance } },
+    { new: true, session }
   );
 
   if (!user) {

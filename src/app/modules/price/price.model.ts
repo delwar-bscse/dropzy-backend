@@ -3,6 +3,10 @@ import { IPrice, TPriceModel } from './price.interface'; // Adjust the path as n
 
 const PriceSchema = new Schema<IPrice, TPriceModel>(
   {
+    companyCharge: {
+      type: Number,
+      default: 0,
+    },
     basePrice: {
       type: Number,
       default: 0,

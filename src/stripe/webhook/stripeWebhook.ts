@@ -33,6 +33,7 @@ const stripeWebhook = async (req: Request, res: Response): Promise<any> => {
                         break;
                   default:
                         console.log(`⚠️ Unhandled event type: ${event.type}`);
+                  // transfer.created payment.created balance.available
             }
 
             return res.status(200).json({ received: true });

@@ -2,6 +2,7 @@ import { Model } from "mongoose";
 
 
 export interface IPrice  {
+  companyCharge: number;
   basePrice: number;
   freeWeight: number;
   freeDimension: number;
