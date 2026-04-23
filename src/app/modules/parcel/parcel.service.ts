@@ -547,7 +547,7 @@ const leaveParcelToDB = async (courierId: string, parcelId: string, payload: any
 
         const parcel = await ParcelModel.findOneAndUpdate(
             { _id: parcelId, status: ParcelStatus.ONTHEWAY, sendDeliveryRequest: false, courier: courierId },
-            { sendDeliveryRequest: true, proofImage: payload.proofImage },
+            { sendDeliveryRequest: true, proofImage: payload.proofImage, locationImage: payload.locationImage },
             { new: true }
         ).lean();
 

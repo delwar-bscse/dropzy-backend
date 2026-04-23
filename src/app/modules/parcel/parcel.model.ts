@@ -88,6 +88,7 @@ const ParcelSchema = new Schema<IParcel, TParcelModal>(
     note: { type: String, default: '' },
     images: { type: [String], default: [] },
     proofImage: { type: String },
+    locationImage: { type: String },
     track_date: {
       type: TrackDateSchema,
       default: () => ({}),

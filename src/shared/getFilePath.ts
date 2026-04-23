@@ -1,6 +1,6 @@
 import path from 'path';
 import { optimizeImage } from '../util/imageOptimize';
-type IFolderName = 'image' | 'images' | 'proofImage' | 'media' | 'doc' | 'profile' | 'imgFront' | 'imgBack' | 'video' | 'pdf' | 'attachment';
+type IFolderName = 'image' | 'images' | 'proofImage' | 'locationImage' | 'media' | 'doc' | 'profile' | 'imgFront' | 'imgBack' | 'video' | 'pdf' | 'attachment';
 
 // single file
 export const getSingleFilePath = async (files: any, folderName: IFolderName) => {

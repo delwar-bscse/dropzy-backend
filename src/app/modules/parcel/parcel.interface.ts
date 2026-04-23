@@ -44,6 +44,7 @@ export interface IParcel {
     sendDeliveryRequest: boolean;
     images?: string[];
     proofImage?: string;
+    locationImage?: string;
     track_date?: ITrackDate;
     isFavorite?: boolean;
 }

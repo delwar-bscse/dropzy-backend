@@ -4,7 +4,6 @@ import { StatusCodes } from 'http-status-codes';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import ApiError from '../../errors/ApiErrors';
-import { profile } from 'console';
 
 const uploadDirectories: Record<string, string> = {
     image: 'image',
@@ -13,6 +12,7 @@ const uploadDirectories: Record<string, string> = {
     imgBack: 'imgBack',
     images: 'images',
     proofImage: 'proofImage',
+    locationImage: 'locationImage',
     video: 'video',
     doc: 'doc',
     pdf: 'pdf',
@@ -70,6 +70,7 @@ const fileUploadHandler = () => {
         images: ['image/jpeg', 'image/png', 'image/jpg'],
         profile: ['image/jpeg', 'image/png', 'image/jpg'],
         proofImage: ['image/jpeg', 'image/png', 'image/jpg'],
+        locationImage: ['image/jpeg', 'image/png', 'image/jpg'],
         imgFront: ['image/jpeg', 'image/png', 'image/jpg'],
         imgBack: ['image/jpeg', 'image/png', 'image/jpg'],
         pdf: ['application/pdf'],
@@ -106,6 +107,7 @@ const fileUploadHandler = () => {
             { name: 'imgFront', maxCount: 1 },
             { name: 'imgBack', maxCount: 1 },
             { name: 'proofImage', maxCount: 1 },
+            { name: 'locationImage', maxCount: 1 },
             { name: 'attachment', maxCount: 1 },
         ]);
     return upload;

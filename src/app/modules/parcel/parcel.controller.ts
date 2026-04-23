@@ -73,7 +73,8 @@ const pickupParcel = catchAsync(async (req: Request, res: Response, next: NextFu
 // update parcel
 const leaveParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const proofImage = await getSingleFilePath(req.files, "proofImage");
-    const result = await ParcelService.leaveParcelToDB(req.user.id,  req.params.id as string, { proofImage });
+    const locationImage = await getSingleFilePath(req.files, "locationImage");
+    const result = await ParcelService.leaveParcelToDB(req.user.id,  req.params.id as string, { proofImage, locationImage });
 
     sendResponse(res, {
         success: true,
