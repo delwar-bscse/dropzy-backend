@@ -13,6 +13,7 @@ const TrackDateSchema = new Schema<ITrackDate>({
   posted: { type: Date },
   accepted: { type: Date },
   on_the_way: { type: Date },
+  request_for_delivery: { type: Date },
   delivered: { type: Date },
 }, { _id: false });
 

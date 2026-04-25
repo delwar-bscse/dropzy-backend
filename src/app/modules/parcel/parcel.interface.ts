@@ -11,6 +11,7 @@ export interface ITrackDate {
     posted?: Date;
     accepted?: Date;
     on_the_way?: Date;
+    request_for_delivery?: Date;
     delivered?: Date;
 }
 

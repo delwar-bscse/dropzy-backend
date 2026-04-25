@@ -504,6 +504,39 @@ const acceptParcelToDB = async (courierId: string, parcelId: string): Promise<an
     };
 };
 
+// accept delivery request of  parcel to db
+const cancelParcelToDB = async (courierId: string, parcelId: string): Promise<any> => {
+    const isExistCourier = await UserModel.findOne({ _id: courierId, role: USER_ROLES.COURIER });
+    if (!isExistCourier) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Courier not found');
+    }
+
+    const payload = {
+        status: ParcelStatus.POSTED,
+        courier: null,
+        $set: {
+            [`track_date.${ParcelStatus.ACCEPTED}`]: null
+        }
+    }
+
+    const parcel = await ParcelModel.findOneAndUpdate({ _id: parcelId, status: ParcelStatus.ACCEPTED }, payload, { new: true });
+
+    if (!parcel) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to cancel parcel');
+    }
+    sendNotifications({
+        type: Notification_Type.PARCEL_STATUS,
+        title: 'Courier cancel parcel accepted',
+        receiver: parcel.sender,
+        sender: parcel.courier,
+        referenceId: parcel._id,
+    });
+
+    return {
+        data: parcel
+    };
+};
+
 // pickup parcel to db
 const pickupParcelToDB = async (courierId: string, parcelId: string): Promise<any> => {
     const isExistCourier = await UserModel.findOne({ _id: courierId, role: USER_ROLES.COURIER });
@@ -547,7 +580,13 @@ const leaveParcelToDB = async (courierId: string, parcelId: string, payload: any
 
         const parcel = await ParcelModel.findOneAndUpdate(
             { _id: parcelId, status: ParcelStatus.ONTHEWAY, sendDeliveryRequest: false, courier: courierId },
-            { sendDeliveryRequest: true, proofImage: payload.proofImage, locationImage: payload.locationImage },
+            {
+                sendDeliveryRequest: true,
+                // status: ParcelStatus.REQUESTFORDELIVERY,
+                proofImage: payload.proofImage,
+                locationImage: payload.locationImage,
+                [`track_date.${ParcelStatus.REQUESTFORDELIVERY}`]: new Date()
+            },
             { new: true }
         ).lean();
 
@@ -556,8 +595,8 @@ const leaveParcelToDB = async (courierId: string, parcelId: string, payload: any
         }
 
         sendNotifications({
-            type: Notification_Type.PARCEL_STATUS,
-            title: 'Parcel left by Courier',
+            type: Notification_Type.PARCEL_DELIVERY_REQUEST,
+            title: 'Parcel left by Courier. Your confirmation is required for delivery',
             receiver: parcel.sender,
             sender: parcel.courier,
             referenceId: parcel._id,
@@ -624,39 +663,6 @@ const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<a
     } finally {
         await session.endSession();
     }
-};
-
-// accept delivery request of  parcel to db
-const cancelParcelToDB = async (courierId: string, parcelId: string): Promise<any> => {
-    const isExistCourier = await UserModel.findOne({ _id: courierId, role: USER_ROLES.COURIER });
-    if (!isExistCourier) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Courier not found');
-    }
-
-    const payload = {
-        status: ParcelStatus.POSTED,
-        courier: null,
-        $set: {
-            [`track_date.${ParcelStatus.ACCEPTED}`]: null
-        }
-    }
-
-    const parcel = await ParcelModel.findOneAndUpdate({ _id: parcelId, status: ParcelStatus.ACCEPTED }, payload, { new: true });
-
-    if (!parcel) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to cancel parcel');
-    }
-    sendNotifications({
-        type: Notification_Type.PARCEL_STATUS,
-        title: 'Courier cancel parcel accepted',
-        receiver: parcel.sender,
-        sender: parcel.courier,
-        referenceId: parcel._id,
-    });
-
-    return {
-        data: parcel
-    };
 };
 
 export const ParcelService = {
