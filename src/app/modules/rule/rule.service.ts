@@ -28,7 +28,7 @@ const addRuleToDB = async (): Promise<void> => {
 };
 
 // Function to get rule
-const getRuleFromDB = async (title?: string): Promise<Partial<IRule>> => {
+const getRuleFromDB = async (title?: string): Promise<any> => {
   const rule = await RuleModel.findOne().select(title ? title : '').lean();
 
   if (!rule) {

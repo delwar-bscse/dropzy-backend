@@ -116,7 +116,7 @@ const getMyParcels = catchAsync(async (req: Request, res: Response, next: NextFu
     // 1. Define which query fields are filters
     const acceptableFields = ['searchTerm', 'status', 'page', 'limit'];
     // 2. Pick only allowed filters from req.query
-    const filterOptions = {...pick(req.query, acceptableFields), fields: "sender, receiver, courier, status, pickup, destination, price"};
+    const filterOptions = {...pick(req.query, acceptableFields), fields: "sender, receiver, courier, status, pickup, destination, price, sendDeliveryRequest"};
 
     const result = await ParcelService.getMyParcelsFromDB(req.user, filterOptions);
 

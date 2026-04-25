@@ -15,6 +15,7 @@ import config from "../../../config";
 import { sendNotifications } from "../../../helpers/notificationHelper";
 import { Notification_Type } from "../../../enums/notification";
 import { FavListModel } from "../favList/favList.model";
+import { logger } from "../../../shared/logger";
 
 // Create Stripe Test Payment
 const stripeTestPaymentToDB = async (): Promise<any> => {
@@ -351,11 +352,11 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
         {
             $unwind: { path: "$courier", preserveNullAndEmptyArrays: true },
         },
-        {
-            $project: {
-                sendDeliveryRequest: 0,
-            }
-        }
+        // {
+        //     $project: {
+        //         sendDeliveryRequest: 0,
+        //     }
+        // }
     ];
 
     pipeline.push({
@@ -665,6 +666,89 @@ const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<a
     }
 };
 
+// Auto accept delivery request after 2 hours from parcel to db
+const autoAcceptDeliveryToDB = async () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    // 1️⃣ Find eligible parcels
+    const parcels = await ParcelModel.find({
+        status: ParcelStatus.ONTHEWAY,
+        sendDeliveryRequest: true,
+        [`track_date.${ParcelStatus.REQUESTFORDELIVERY}`]: {
+            $exists: true,
+            $lte: twoHoursAgo
+        }
+    });
+
+    if (!parcels.length) {
+        logger.info(`No pending delivery requests to auto-accept.`);
+        return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // 2️⃣ Process each parcel independently
+    for (const parcel of parcels) {
+        const session = await mongoose.startSession();
+
+        try {
+            session.startTransaction();
+
+            // Ensure track_date exists
+            if (!parcel.track_date) parcel.track_date = {};
+
+            // 3️⃣ Update parcel
+            parcel.status = ParcelStatus.DELIVERED;
+            parcel.track_date[ParcelStatus.DELIVERED] = new Date();
+
+            await parcel.save({ session });
+
+            // 4️⃣ Calculate profit
+            const calculateResult = await calculateProfit({
+                l: parcel.length,
+                w: parcel.width,
+                h: parcel.height,
+                price: parcel.price
+            });
+
+            // 5️⃣ Create transaction
+            await TransactionService.createTransactionToDB({
+                ref: `Parcel Delivery confirmed`,
+                parcel: parcel._id,
+                from: parcel.sender,
+                to: parcel.courier!,
+                balance: parcel.price,
+                courierBalance: calculateResult.courierProfit,
+                systemBalance: calculateResult.companyProfit
+            }, session);
+
+            // ✅ Commit first
+            await session.commitTransaction();
+            successCount++;
+
+            // 6️⃣ Send notification AFTER commit
+            sendNotifications({
+                type: Notification_Type.PARCEL_STATUS,
+                title: `Parcel Delivery confirmed`,
+                receiver: parcel.courier,
+                sender: parcel.sender,
+                referenceId: parcel._id,
+            });
+
+        } catch (error: any) {
+            await session.abortTransaction();
+            failCount++;
+
+            logger.error(`❌ Failed parcel ${parcel._id}: ${error.message}`);
+        } finally {
+            session.endSession();
+        }
+    }
+
+    logger.info(`✅ Auto-accept completed: ${successCount} success, ${failCount} failed`);
+};
+
 export const ParcelService = {
     createParcelToDB,
     updateParcelToDB,
@@ -678,5 +762,6 @@ export const ParcelService = {
     parcelsOverviewFromDB,
     getMyParcelsFromDB,
     stripeTestPaymentToDB,
-    cancelParcelToDB
+    cancelParcelToDB,
+    autoAcceptDeliveryToDB
 };

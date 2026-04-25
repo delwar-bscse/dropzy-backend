@@ -18,7 +18,7 @@ const TrackDateSchema = new Schema<ITrackDate>({
 }, { _id: false });
 
 // --- Main Schema ---
-const ParcelSchema = new Schema<IParcel, TParcelModal>(
+const parcelSchema = new Schema<IParcel, TParcelModal>(
   {
     trackId: { type: String, required: true },
     sender: {
@@ -101,14 +101,14 @@ const ParcelSchema = new Schema<IParcel, TParcelModal>(
 );
 
 // --- Static Method ---
-ParcelSchema.statics.isExistParcelById = async function (id: string) {
+parcelSchema.statics.isExistParcelById = async function (id: string) {
   return await this.findById(id);
 };
 
 // --- Model ---
 
-ParcelSchema.index({ p_coordinates: "2dsphere" });
-ParcelSchema.index({ d_coordinates: "2dsphere" });
-ParcelSchema.index({ track_date: "2dsphere" });
+parcelSchema.index({ p_coordinates: "2dsphere" });
+parcelSchema.index({ d_coordinates: "2dsphere" });
+parcelSchema.index({ trackId: "text" });
 
-export const ParcelModel = model<IParcel, TParcelModal>('Parcel', ParcelSchema);
+export const ParcelModel = model<IParcel, TParcelModal>('Parcel', parcelSchema);

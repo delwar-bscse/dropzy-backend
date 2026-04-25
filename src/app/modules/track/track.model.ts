@@ -26,4 +26,6 @@ const trackSchema = new Schema<ITrack, ITrackModel>(
     { timestamps: true }
 )
 
+trackSchema.index({ coordinates: "2dsphere" });
+
 export const TrackModel = model<ITrack, ITrackModel>('Track', trackSchema);
