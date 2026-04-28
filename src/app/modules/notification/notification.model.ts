@@ -25,6 +25,7 @@ const notificationSchema = new Schema<INotification, TNotificationModel>(
     },
     referenceId: {
       type: Schema.Types.ObjectId,
+      ref: 'Parcel',
       default: null,
     },
     isRead: {

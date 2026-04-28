@@ -16,6 +16,7 @@ import { sendNotifications } from "../../../helpers/notificationHelper";
 import { Notification_Type } from "../../../enums/notification";
 import { FavListModel } from "../favList/favList.model";
 import { logger } from "../../../shared/logger";
+import { calculateProfit } from "../../../util/calculateProfit";
 
 // Create Stripe Test Payment
 const stripeTestPaymentToDB = async (): Promise<any> => {
@@ -257,7 +258,7 @@ const getParcelsFromDB = async (payload: any): Promise<any> => {
     const limit = Number(payload.limit) || 10;
     const skip = (page - 1) * limit;
     const radius = (Number(payload.radius) || 10) / 6378.1; //radius in radians;
-    const status = payload.status || ParcelStatus.POSTED;
+    const status = payload.status;
     const d_lng = payload.d_lng;
     const d_lat = payload.d_lat;
     const searchTerm = payload.searchTerm;
@@ -644,8 +645,8 @@ const acceptDeliveryToDB = async (senderId: string, parcelId: string): Promise<a
             from: parcel.sender,
             to: parcel.courier!,
             balance: parcel.price,
-            courierBalance: calculateResult.courierProfit,
-            systemBalance: calculateResult.companyProfit
+            courierBalance: calculateResult?.courierProfit,
+            systemBalance: calculateResult?.companyProfit
         }, session);
 
         sendNotifications({

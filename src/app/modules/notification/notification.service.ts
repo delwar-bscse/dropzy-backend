@@ -37,15 +37,27 @@ const getUserNotificationFromDB = async (
           {
             $lookup: {
               from: 'users',
-              localField: 'referenceId',
+              localField: 'sender',
               foreignField: '_id',
-              as: 'referenceId',
+              as: 'sender',
               pipeline: [
-                { $project: { name: 1, email: 1, image: 1, contact: 1 } }
+                { $project: { name: 1, email: 1, profile: 1, contact: 1 } }
               ]
             }
           },
-          { $unwind: { path: '$referenceId', preserveNullAndEmptyArrays: true } },
+          { $unwind: { path: '$sender', preserveNullAndEmptyArrays: true } },
+          {
+            $lookup: {
+              from: 'parcels',
+              localField: 'referenceId',
+              foreignField: '_id',
+              as: 'parcel',
+              pipeline: [
+                { $project: { trackId: 1, status: 1, track_date: 1 } }
+              ]
+            }
+          },
+          { $unwind: { path: '$parcel', preserveNullAndEmptyArrays: true } },
           // 🧠 Sort unread first, then by newest date
           { $sort: { isRead: 1, createdAt: -1 } },
           { $skip: skip },

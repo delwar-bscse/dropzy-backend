@@ -1,4 +1,4 @@
-const calculateProfit = async (payload: { l: number; w: number; h: number; price: number }): Promise<{ totalCharge: number; courierProfit: number; companyProfit: number }> => {
+export const calculateProfit = async (payload: { l: number; w: number; h: number; price: number }): Promise<{ totalCharge: number; courierProfit: number; companyProfit: number }> => {
   const { l, w, h } = payload; // l = length, w = width, h = height
   const TOTAL_CHARGE = payload.price;
   let courierSharePercent;

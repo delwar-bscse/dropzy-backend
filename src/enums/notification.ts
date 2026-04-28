@@ -6,7 +6,7 @@ export enum Notification_Type {
   PAYMENT = 'Payment',
   MESSAGE = 'Message',
   CONTACT_SUPPORT = 'Contact & Support',
-  PARCEL_STATUS = 'Booking Status',
+  PARCEL_STATUS = 'Parcel Status',
   PARCEL_DELIVERY_REQUEST = 'Parcel Delivery Request',
   REVIEW = 'New Review',
 }
