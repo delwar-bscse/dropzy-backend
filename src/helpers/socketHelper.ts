@@ -85,3 +85,64 @@ const socket = (io: Server) => {
 }
 
 export const socketHelper = { socket }
+
+/*
+Step 1: Handle update via Socket instead of API
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  // Courier joins their own room
+  socket.on("join-track-room", (courierId: string) => {
+    socket.join(`track::${courierId}`);
+  });
+
+  // 🔥 Update track via socket (instead of API)
+  socket.on("update-track", async ({ courierId, payload }) => {
+    try {
+      const track = await TrackModel.findOneAndUpdate(
+        { courier: courierId },
+        payload,
+        { new: true }
+      ).lean();
+
+      if (!track) {
+        return socket.emit("error", "Track doesn't exist!");
+      }
+
+      // Emit only to users tracking this courier
+      io.to(`track::${courierId}`).emit("track-update", track);
+
+    } catch (err) {
+      console.error(err);
+      socket.emit("error", "Something went wrong");
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+
+
+Step 2: Client-side (Courier updates location)
+
+socket.emit("update-track", {
+  courierId: "COURIER_ID",
+  payload: {
+    location: { lat: 23.81, lng: 90.41 },
+    status: "on_the_way"
+  }
+});
+
+
+Step 3: Client-side (Sender listens)
+
+socket.emit("join-track-room", "COURIER_ID");
+
+socket.on("track-update", (data) => {
+  console.log("Live track update:", data);
+});
+
+*/
