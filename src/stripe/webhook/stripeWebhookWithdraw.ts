@@ -1,39 +1,34 @@
 import e, { Request, Response } from 'express';
 import Stripe from 'stripe';
-import { handlePaymentSuccess } from '../handlers/handlePaymentSuccess';
 import stripe from '../../config/stripe';
 import config from '../../config';
 import { handleStripeConnectedAccount } from '../handlers/handleStripeConnectedAccount';
 
 
-const stripeWebhook = async (req: Request, res: Response): Promise<any> => {
-      console.log("Stripe Webhook called------------------------------------------------It's working");
+const stripeWebhookWithdraw = async (req: Request, res: Response): Promise<any> => {
+      console.log("Stripe Withdraw Webhook called------------------------------------------------It's working");
       const payload = req.body;
       const signature = req.headers['stripe-signature'];
 
       if (!payload) {
-            return res.status(400).json({ error: 'Missing stripe payment payload' });
+            return res.status(400).json({ error: 'Missing stripe withdraw payload' });
       }
 
       if (!signature) {
-            return res.status(400).json({ error: 'Missing payment stripe-signature header' });
+            return res.status(400).json({ error: 'Missing withdraw stripe-signature header' });
       }
 
       try {
-            const event = stripe.webhooks.constructEvent(payload, signature, config.stripe.webhook_secret as string);
+            const event = stripe.webhooks.constructEvent(payload, signature, config.stripe.webhook_secret_withdraw as string);
             const eventType: string = event.type;
 
             switch (eventType) {
-                  case 'checkout.session.completed':
-                        await handlePaymentSuccess(event.data.object as Stripe.Checkout.Session);
-                        break;
                   case 'account.updated':
                         const updatedAccount = event.data.object as Stripe.Account;
                         await handleStripeConnectedAccount(updatedAccount);
                         break;
                   default:
                         console.log(`⚠️ Unhandled event type: ${event.type}`);
-                  // transfer.created payment.created balance.available
             }
 
             return res.status(200).json({ received: true });
@@ -44,4 +39,4 @@ const stripeWebhook = async (req: Request, res: Response): Promise<any> => {
 };
 
 
-export default stripeWebhook;
+export default stripeWebhookWithdraw;

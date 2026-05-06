@@ -12,6 +12,8 @@ const app = express();
 import "./helpers/cornJob"
 import stripeWebhook from "./stripe/webhook/stripeWebhook";
 import path from "path";
+import stripeWebhookPayment from "./stripe/webhook/stripeWebhookPayment";
+import stripeWebhookWithdraw from "./stripe/webhook/stripeWebhookWithdraw";
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -30,8 +32,11 @@ const limiter = rateLimit({
 });
 
 
-// Stripe webhook route
+// Stripe webhook route - Local testing endpoint
 app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
+// Separate endpoints for production webhooks
+app.post('/api/v1/stripe/webhook-payment', express.raw({ type: 'application/json' }), stripeWebhookPayment);
+app.post('/api/v1/stripe/webhook-withdraw', express.raw({ type: 'application/json' }), stripeWebhookWithdraw);
 
 // morgan
 app.use(Morgan.successHandler);
