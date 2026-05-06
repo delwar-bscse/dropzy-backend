@@ -2,14 +2,14 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import { Morgan } from "./shared/morgan";
-import router from '../src/app/routes';
+import router from './app/routes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import requestIp from 'request-ip';
 import rateLimit from 'express-rate-limit';
 import ApiError from "./errors/ApiErrors";
 // import handleStripeWebhook from "./stripe/handleStripeWebhook";
 const app = express();
-import "../src/helpers/cornJob"
+import "./helpers/cornJob"
 import stripeWebhook from "./stripe/webhook/stripeWebhook";
 import path from "path";
 
