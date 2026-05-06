@@ -65,6 +65,14 @@ const loginUserFromDB = async (payload: ILoginData) => {
         config.jwt.jwtRefreshExpiresIn as string
     );
 
+    // sendNotifications({
+    //     type: Notification_Type.CONTACT_SUPPORT,
+    //     title: 'Login Alert: New login detected on your account',
+    //     receiver: isExistUser._id,
+    //     sender: isExistUser._id,
+    //     referenceId: isExistUser._id,
+    // });
+
     return { accessToken, refreshToken, role: isExistUser.role, _id: isExistUser._id };
 };
 
@@ -147,7 +155,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail): Promise<any> => {
             sender: isExistUser._id,
             referenceId: isExistUser._id,
         });
-        
+
         message = 'Email verified successfully';
         data = { accessToken, refreshToken, role: isExistUser.role };
     } else {

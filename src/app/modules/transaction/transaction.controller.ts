@@ -19,7 +19,9 @@ const createTransaction = catchAsync(
         parcel: new Types.ObjectId("69ba1374336f0f964d37d6f3"),
         from: new Types.ObjectId("69b949c46642b044b97d90c1"),
         to: new Types.ObjectId("69b9489e6642b044b97d90b4"),
-        balance: 400
+        balance: 400,
+        courierBalance: 350,
+        systemBalance: 50
       }
 
       const result = await TransactionService.createTransactionToDB(payload, session);

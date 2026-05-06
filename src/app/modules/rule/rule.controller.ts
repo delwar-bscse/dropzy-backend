@@ -21,11 +21,11 @@ const addRule = catchAsync(async (req, res) => {
 // get rule
 const getRule = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const { title } = req.params;
-  const result = await RuleService.getRuleFromDB(title)
+  const result = await RuleService.getRuleFromDB(title as string);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: 'Setting update successfully',
+    message: 'Setting retrieved successfully',
     data: result,
   });
 },
