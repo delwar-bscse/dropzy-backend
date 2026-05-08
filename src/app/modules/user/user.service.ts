@@ -286,7 +286,7 @@ const withdrawFromDB = async (user: JwtPayload) => {
             }
 
             const transfer = await stripe.transfers.create({
-                amount: userBalance * 100,
+                amount: (Number(userBalance.toFixed(2)) * 100),
                 currency: "chf",
                 destination: isExistUser?.accountInfo?.accountId,
             });
