@@ -4,7 +4,8 @@ import { UserModel } from "../../app/modules/user/user.model";
 import stripe from "../../config/stripe";
 
 export const handleStripeConnectedAccount = async (data: Stripe.Account) => {
-  console.log("handleStripeConnectedAccount---------------", data)
+  console.log("handleStripeConnectedAccount---------------Working")
+  // console.log("handleStripeConnectedAccount---------------", data)
 
   const session = await mongoose.startSession();
   try {
