@@ -448,7 +448,7 @@ const getParcelToDB = async (userId: string, parcelId: string): Promise<any> => 
         })
         .populate({
             path: 'courier',
-            select: 'name email profile address phoneNumber'
+            select: 'name email profile address phoneNumber c_rides c_rating'
         })
         .lean();
 
